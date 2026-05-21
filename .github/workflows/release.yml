@@ -74,7 +74,7 @@ jobs:
 
           docker run --rm \
             -v "${PWD}:/config" \
-            ghcr.io/esphome/esphome:2026.4.5 \
+            ghcr.io/esphome/esphome:2026.5.0 \
             compile /config/builds/${{ matrix.yaml }}.factory.yaml
 
       - name: Fix ESPHome cache permissions
