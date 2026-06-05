@@ -36,8 +36,11 @@
     beta_version: "",
     beta_available: false,
     auto_update: true,
+    beta_channel: false,
     update_frequency: "Daily",
     update_freq_options: ["Hourly", "Daily", "Weekly", "Monthly"],
+    firmware_manifest_url: "",
+    firmware_beta_manifest_url: "",
     schedule_enabled: false,
     schedule_on_hour: 6,
     schedule_off_hour: 23,
@@ -268,7 +271,10 @@
     update: eid("update", "Firmware: Update"),
     update_beta: eid("update", "Firmware: Update Beta"),
     auto_update: eid("switch", "Firmware: Auto Update"),
+    beta_channel: eid("switch", "Firmware: Beta Channel"),
     update_frequency: eid("select", "Firmware: Update Frequency"),
+    firmware_manifest_url: eid("text", "Firmware: Manifest URL"),
+    firmware_beta_manifest_url: eid("text", "Firmware: Beta Manifest URL"),
     schedule_enabled: eid("switch", "Screen: Schedule Enabled"),
     schedule_on_hour: eid("number", "Screen: Schedule On Hour"),
     schedule_off_hour: eid("number", "Screen: Schedule Off Hour"),
@@ -323,6 +329,7 @@
   // Matches the ESPHome template text max_length for album/person ID and label lists.
   var MAX_PHOTO_ID_FIELD_LENGTH = 255;
   var MAX_NTP_SERVER_LENGTH = 253;
+  var MAX_FIRMWARE_URL_LENGTH = 255;
   var PHOTO_ID_FIELD_TOO_LONG =
     "List exceeds 255 characters (device limit). Remove IDs or shorten the list.";
   var PHOTO_LABEL_FIELD_TOO_LONG =
@@ -377,6 +384,19 @@
       url = url.slice(0, -1);
     }
     return url;
+  }
+
+  function normalizeFirmwareManifestUrl(value) {
+    return stripUrlTrailingSlashes(String(value == null ? "" : value).trim());
+  }
+
+  function isValidHttpUrl(value) {
+    try {
+      var url = new URL(value);
+      return (url.protocol === "http:" || url.protocol === "https:") && !!url.hostname;
+    } catch (_) {
+      return false;
+    }
   }
 
   function developerPanelEnabledByUrl() {
@@ -584,7 +604,10 @@
     "switch/Clock: Show": { key: "show_clock", boolFromState: true },
     "text_sensor/Firmware: Version": { key: "firmware" },
     "switch/Firmware: Auto Update": { key: "auto_update", boolFromState: true },
+    "switch/Firmware: Beta Channel": { key: "beta_channel", boolFromState: true },
     "select/Firmware: Update Frequency": { key: "update_frequency", optionsKey: "update_freq_options", default: "Daily" },
+    "text/Firmware: Manifest URL": { key: "firmware_manifest_url" },
+    "text/Firmware: Beta Manifest URL": { key: "firmware_beta_manifest_url" },
     "switch/Screen: Schedule Enabled": { key: "schedule_enabled", boolFromState: true },
     "switch/Screen: Schedule": { key: "schedule_enabled", boolFromState: true },
     "number/Screen: Schedule On Hour": { key: "schedule_on_hour", default: 6, number: true },
@@ -688,7 +711,8 @@
 
   // Single source for settings fetched on load; KEY_TO_ENTITY_ID derived from ENTITY_STATE_MAP.
   var INITIAL_FETCH_KEYS = [
-    "firmware", "auto_update", "update_frequency",
+    "firmware", "auto_update", "beta_channel", "update_frequency",
+    "firmware_manifest_url", "firmware_beta_manifest_url",
     "clock_format", "timezone", "ntp_server_1", "ntp_server_2", "ntp_server_3",
     "photo_source", "album_ids", "album_labels", "person_ids", "person_labels",
     "date_filter_enabled", "date_filter_mode", "date_from", "date_to", "relative_amount", "relative_unit",
@@ -2018,6 +2042,12 @@
             S.latest_version = data.latest_version || data.value;
             renderUpdateRow();
           }
+          if (!S.beta_channel) {
+            S.beta_available = false;
+            S.beta_version = "";
+            renderBetaRow();
+            return null;
+          }
           return safeGet(endpoints.update_beta);
         })
         .then(function (betaData) {
@@ -2052,6 +2082,84 @@
       })
     );
     fwBody.appendChild(freqField);
+
+    var betaChannelField = field("");
+    var betaChannelRow = el("div", "toggle-row");
+    betaChannelRow.innerHTML = "<span>Beta Channel</span>";
+    var betaChannelToggle = el("div", S.beta_channel ? "toggle on" : "toggle");
+    betaChannelToggle.onclick = function () {
+      S.beta_channel = !S.beta_channel;
+      betaChannelToggle.className = S.beta_channel ? "toggle on" : "toggle";
+      post(endpoints.beta_channel + (S.beta_channel ? "/turn_on" : "/turn_off"));
+      if (!S.beta_channel) {
+        S.beta_available = false;
+        S.beta_version = "";
+        renderBetaRow();
+      }
+    };
+    betaChannelRow.appendChild(betaChannelToggle);
+    betaChannelField.appendChild(betaChannelRow);
+    fwBody.appendChild(betaChannelField);
+
+    var firmwareUrlStatus = el("div", "status");
+    function setFirmwareUrlStatus(msg, ok) {
+      firmwareUrlStatus.innerHTML = '<span class="dot ' + (ok ? "green" : "red") + '"></span> ' + msg;
+      clearTimeout(firmwareUrlStatus._t);
+      if (ok) {
+        firmwareUrlStatus._t = setTimeout(function () {
+          firmwareUrlStatus.textContent = "";
+        }, 3000);
+      }
+    }
+
+    function makeFirmwareUrlField(label, key, placeholder) {
+      var f = field(label);
+      var firmwareUrlInput = input("url", S[key], placeholder, MAX_FIRMWARE_URL_LENGTH);
+      var firmwareUrlError = el("div", "field-error");
+      firmwareUrlInput.onchange = function () {
+        var url = normalizeFirmwareManifestUrl(firmwareUrlInput.value);
+        firmwareUrlError.textContent = "";
+        if (url && !isValidHttpUrl(url)) {
+          firmwareUrlError.textContent = "Use a full http:// or https:// URL";
+          return;
+        }
+        postTextValueSet(endpoints[key] + "/set", url, false)
+          .then(function (r) {
+            if (!r || !r.ok) throw new Error("save_failed");
+            return delayMs(500);
+          })
+          .then(function () {
+            return safeGet(endpoints[key]);
+          })
+          .then(function (resp) {
+            var saved = normalizeFirmwareManifestUrl((resp && (resp.value || resp.state)) || url);
+            S[key] = saved;
+            firmwareUrlInput.value = saved;
+            setFirmwareUrlStatus("Update URL saved", true);
+          })
+          .catch(function () {
+            setFirmwareUrlStatus("Failed to save update URL", false);
+          });
+      };
+      f.appendChild(firmwareUrlInput);
+      f.appendChild(firmwareUrlError);
+      return f;
+    }
+
+    var firmwareUrlsHint = el("div", "field-hint");
+    firmwareUrlsHint.textContent = "Advanced: use a custom manifest to check and install firmware from another location.";
+    fwBody.appendChild(firmwareUrlsHint);
+    fwBody.appendChild(makeFirmwareUrlField(
+      "Stable Manifest URL",
+      "firmware_manifest_url",
+      "https://jtenniswood.github.io/espframe/firmware/manifest.json"
+    ));
+    fwBody.appendChild(makeFirmwareUrlField(
+      "Beta Manifest URL",
+      "firmware_beta_manifest_url",
+      "https://jtenniswood.github.io/espframe/firmware/beta/manifest.json"
+    ));
+    fwBody.appendChild(firmwareUrlStatus);
 
     wrap.appendChild(makeCollapsibleCard("Firmware", fwBody, true));
 
@@ -2106,7 +2214,7 @@
     } else if (id === "text_sensor/Screen: Sunset") {
       S.sunset = d.value || d.state || "";
       updateSunInfoElement(document.getElementById("sun-info"));
-    } else if (ENTITY_STATE_MAP[id] && ["screen_rotation", "portrait_pairing", "developer_features_enabled"].indexOf(ENTITY_STATE_MAP[id].key) !== -1) {
+    } else if (ENTITY_STATE_MAP[id] && ["screen_rotation", "portrait_pairing", "developer_features_enabled", "beta_channel"].indexOf(ENTITY_STATE_MAP[id].key) !== -1) {
       applyEntityToState(d);
       if (!isEditingSetting()) renderSettings();
     } else if (ENTITY_STATE_MAP[id] && ENTITY_STATE_MAP[id].key.indexOf("photo_metadata_") === 0) {
@@ -2368,6 +2476,13 @@
         interval: S.interval,
         conn_timeout: S.conn_timeout
       },
+      firmware_updates: {
+        auto_update: S.auto_update,
+        beta_channel: S.beta_channel,
+        update_frequency: S.update_frequency,
+        manifest_url: S.firmware_manifest_url,
+        beta_manifest_url: S.firmware_beta_manifest_url
+      },
       clock: {
         show: S.show_clock,
         format: S.clock_format,
@@ -2435,6 +2550,7 @@
         var c = data.connection || {};
         var p = data.photos || {};
         var f = data.frequency || {};
+        var upd = data.firmware_updates || {};
         var clk = data.clock || {};
         var scr = data.screen || {};
 
@@ -2535,6 +2651,37 @@
         if (f.conn_timeout !== undefined) {
           S.conn_timeout = f.conn_timeout;
           post(endpoints.conn_timeout + "/set", { option: f.conn_timeout });
+        }
+
+        if (upd.auto_update !== undefined) {
+          S.auto_update = upd.auto_update;
+          post(endpoints.auto_update + (upd.auto_update ? "/turn_on" : "/turn_off"));
+        }
+        if (upd.beta_channel !== undefined) {
+          S.beta_channel = upd.beta_channel;
+          post(endpoints.beta_channel + (upd.beta_channel ? "/turn_on" : "/turn_off"));
+        }
+        if (upd.update_frequency !== undefined) {
+          S.update_frequency = upd.update_frequency;
+          post(endpoints.update_frequency + "/set", { option: upd.update_frequency });
+        }
+        if (upd.manifest_url !== undefined) {
+          var importManifestUrl = normalizeFirmwareManifestUrl(upd.manifest_url);
+          if (importManifestUrl && !isValidHttpUrl(importManifestUrl)) {
+            showBanner("Stable firmware URL was invalid - not imported", "error");
+          } else {
+            S.firmware_manifest_url = importManifestUrl;
+            postTextValueSet(endpoints.firmware_manifest_url + "/set", importManifestUrl);
+          }
+        }
+        if (upd.beta_manifest_url !== undefined) {
+          var importBetaManifestUrl = normalizeFirmwareManifestUrl(upd.beta_manifest_url);
+          if (importBetaManifestUrl && !isValidHttpUrl(importBetaManifestUrl)) {
+            showBanner("Beta firmware URL was invalid - not imported", "error");
+          } else {
+            S.firmware_beta_manifest_url = importBetaManifestUrl;
+            postTextValueSet(endpoints.firmware_beta_manifest_url + "/set", importBetaManifestUrl);
+          }
         }
 
         if (clk.show !== undefined) {
