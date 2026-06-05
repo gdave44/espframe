@@ -154,6 +154,15 @@ static void test_immich_body_helpers() {
          std::string::npos);
   assert(build_immich_search_body(1, false, "Person", "", "p1,p2").find("\"personIds\":[\"p1\"]") !=
          std::string::npos);
+  assert(build_immich_timeline_query("All Photos", "", "") == "visibility=timeline");
+  assert(build_immich_timeline_query("Favorites", "", "") ==
+         "visibility=timeline&isFavorite=true");
+  assert(build_immich_timeline_query("Album", "a,b", "") ==
+         "visibility=timeline&albumId=a");
+  assert(build_immich_timeline_query("Person", "", "p1,p2") ==
+         "visibility=timeline&personId=p1");
+  assert(build_immich_timeline_query("Album", "", "").empty());
+  assert(build_immich_timeline_query("Person", "", "").empty());
 
   std::vector<ImmichTimelineBucketInfo> large_album_buckets = {
       {"2026-05-01", 848},

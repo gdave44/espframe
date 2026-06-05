@@ -19,11 +19,11 @@ Choose the **Source** in the device web UI at `http://<device-ip>/` under **Phot
 
 ## All Photos
 
-Shows random photos from your entire library. Set **Source** to **All Photos**; leave Albums and People empty.
+Shows photos sampled from your entire Immich timeline. Set **Source** to **All Photos**; leave Albums and People empty.
 
 ## Favorites
 
-Shows only photos marked with the heart in Immich. Set **Source** to **Favorites**. Ensure at least some photos are favorited.
+Shows only photos marked with the heart in Immich, sampled from the full favorites timeline. Set **Source** to **Favorites**. Ensure at least some photos are favorited.
 
 ## Album
 
@@ -31,11 +31,15 @@ Shows photos from one or more Immich albums. **Get the UUID:** open the album in
 
 The descriptions are saved with the IDs so the web UI can show friendly labels later. They do not affect which photos Immich returns.
 
+Album photos are sampled through Immich's timeline view, so large albums are not limited to the first small batch of results.
+
 ## Person
 
 Shows photos where specific people (faces) appear. Requires face recognition in Immich. **Get the UUID:** open the person under **People** — the URL is `.../person/<uuid>`. Paste one UUID into **People**, then optionally add the person's name in **Who is it?**. Use **Add a person** to add another person if needed. With several IDs, each new image is chosen from **one** of those people at random, so you see photos featuring **any** of them (not only photos where everyone appears together). Your [API key](/api-key) needs `person.read`.
 
 The names are saved with the IDs so the web UI can show friendly labels later. They do not need to match the name stored in Immich.
+
+Person photos are sampled through Immich's timeline view, so large libraries are not limited to the first small batch of results.
 
 ## Album and Person ID limits
 

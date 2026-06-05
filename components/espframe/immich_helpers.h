@@ -9,6 +9,7 @@
 
 static constexpr uint16_t ZOOM_IDENTITY = 256;
 static constexpr uint16_t IMMICH_ALBUM_PAGE_SIZE = 16;
+static constexpr uint16_t IMMICH_TIMELINE_PAGE_SIZE = IMMICH_ALBUM_PAGE_SIZE;
 
 struct ImmichAssetMeta {
   // Normalized subset of the Immich asset response used by the slideshow UI.
@@ -212,6 +213,24 @@ inline std::string build_immich_search_body(int size, bool with_people,
   }
   body += "}";
   return body;
+}
+
+inline std::string build_immich_timeline_query(const std::string &photo_source,
+                                               const std::string &album_ids,
+                                               const std::string &person_ids) {
+  std::string query = "visibility=timeline";
+  if (photo_source == "Favorites") {
+    query += "&isFavorite=true";
+  } else if (photo_source == "Album") {
+    std::string album_id = pick_one_uuid_from_csv(album_ids);
+    if (album_id.empty()) return "";
+    query += "&albumId=" + album_id;
+  } else if (photo_source == "Person") {
+    std::string person_id = pick_one_person_id_for_random_search(person_ids);
+    if (person_id.empty()) return "";
+    query += "&personId=" + person_id;
+  }
+  return query;
 }
 
 inline bool photo_orientation_matches(const ImmichAssetMeta &meta, const std::string &filter) {

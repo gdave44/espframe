@@ -18,16 +18,16 @@ globals:
   - id: immich_memory_asset_id
     type: std::string
     initial_value: '""'
-  - id: immich_album_selected_id
+  - id: immich_metadata_album_id
     type: std::string
     initial_value: '""'
-  - id: immich_album_time_bucket
+  - id: immich_metadata_person_id
     type: std::string
     initial_value: '""'
-  - id: immich_album_asset_id
-    type: std::string
-    initial_value: '""'
-  - id: immich_album_page
+  - id: immich_metadata_page
+    type: int
+    initial_value: '1'
+  - id: immich_metadata_page_size
     type: int
     initial_value: '1'
 
@@ -227,12 +227,13 @@ script:
               - script.execute: immich_fetch_into_slot
 
   # ---------------------------------------------------------------------------
-  # Fetch a random asset from an album using Immich's timeline endpoints.
+  # Fetch a random asset using Immich's timeline endpoints.
   #
-  # The web app uses timeline buckets for album grids; following that path keeps
-  # shared album contents aligned with what the same user sees in Immich.
+  # The web app uses timeline buckets for library grids; following that path
+  # samples across the full source instead of repeatedly asking Immich's random
+  # search endpoint for a tiny result set.
   # ---------------------------------------------------------------------------
-  - id: immich_fetch_album_into_slot
+  - id: immich_fetch_timeline_into_slot
     mode: single
     then:
       - if:
@@ -243,21 +244,28 @@ script:
             - logger.log:
                 level: DEBUG
                 tag: immich
-                format: "Skipping album fetch (wifi disconnected)"
-            - script.stop: immich_fetch_album_into_slot
+                format: "Skipping timeline fetch (wifi disconnected)"
+            - script.stop: immich_fetch_timeline_into_slot
       - if:
           condition:
-            lambda: 'return id(immich_url).state.empty() || id(immich_api_key_text).state.empty() || id(immich_album_ids).state.empty();'
+            lambda: |-
+              std::string source = id(photo_source_select).current_option();
+              return id(immich_url).state.empty() ||
+                     id(immich_api_key_text).state.empty() ||
+                     (source == "Album" && id(immich_album_ids).state.empty()) ||
+                     (source == "Person" && id(immich_person_ids).state.empty());
           then:
             - lambda: |-
-                ESP_LOGW("immich", "Album source selected but Immich URL, API key, or album IDs are missing");
+                ESP_LOGW("immich", "Timeline source selected but Immich URL, API key, or source IDs are missing");
                 clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-            - script.stop: immich_fetch_album_into_slot
+            - script.stop: immich_fetch_timeline_into_slot
       - http_request.get:
           id: http_req
           url: !lambda |-
-            id(immich_album_selected_id) = pick_one_uuid_from_csv(id(immich_album_ids).state);
-            return id(immich_url).state + "/api/timeline/buckets?albumId=" + id(immich_album_selected_id);
+            id(immich_timeline_query) = build_immich_timeline_query(
+              id(photo_source_select).current_option(), id(immich_album_ids).state,
+              id(immich_person_ids).state);
+            return id(immich_url).state + "/api/timeline/buckets?" + id(immich_timeline_query);
           capture_response: true
           max_response_buffer_size: 24kB
           request_headers:
@@ -267,7 +275,7 @@ script:
             then:
               - lambda: |-
                   if (response->status_code != 200) {
-                    ESP_LOGW("immich", "Album buckets HTTP %d", response->status_code);
+                    ESP_LOGW("immich", "Timeline buckets HTTP %d", response->status_code);
                     clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
                     id(immich_last_http_status) = response->status_code;
                     id(immich_retry_cooldown_until_ms) = millis() + 30000;
@@ -276,25 +284,25 @@ script:
                   id(immich_fetch_started) = true;
                   id(immich_last_http_status) = 0;
                   auto bucket = pick_immich_timeline_bucket(body);
-                  id(immich_album_time_bucket) = bucket.time_bucket;
-                  id(immich_album_page) = bucket.page;
-                  if (id(immich_album_time_bucket).empty()) {
+                  id(immich_timeline_time_bucket) = bucket.time_bucket;
+                  id(immich_timeline_page) = bucket.page;
+                  if (id(immich_timeline_time_bucket).empty()) {
                     clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-                    ESP_LOGW("immich", "Album has no usable timeline buckets");
+                    ESP_LOGW("immich", "Source has no usable timeline buckets");
                     id(immich_api_retries) = 0;
                     id(immich_retry_cooldown_until_ms) = millis() + 30000;
                     return;
                   }
-                  ESP_LOGD("immich", "Album bucket selected: %s page %d of %d assets",
-                           id(immich_album_time_bucket).c_str(), id(immich_album_page), (int) bucket.count);
-                  id(immich_fetch_album_bucket).execute();
+                  ESP_LOGD("immich", "Timeline bucket selected: %s page %d of %d assets",
+                           id(immich_timeline_time_bucket).c_str(), id(immich_timeline_page), (int) bucket.count);
+                  id(immich_fetch_timeline_bucket).execute();
           on_error:
             then:
               - lambda: |-
                   id(immich_api_retries)++;
-                  ESP_LOGW("immich", "Album buckets request error for slot %d (attempt %d)", id(target_slot), id(immich_api_retries));
+                  ESP_LOGW("immich", "Timeline buckets request error for slot %d (attempt %d)", id(target_slot), id(immich_api_retries));
                   clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-                  id(immich_diag_reason) = "album buckets request error";
+                  id(immich_diag_reason) = "timeline buckets request error";
                   id(log_immich_diag).execute();
               - if:
                   condition:
@@ -305,26 +313,26 @@ script:
                     - lambda: |-
                         id(immich_api_retries) = 0;
                         id(immich_retry_cooldown_until_ms) = millis() + 30000;
-                        ESP_LOGW("immich", "Album retries exhausted; pausing Immich fetches for 30s");
+                        ESP_LOGW("immich", "Timeline retries exhausted; pausing Immich fetches for 30s");
 
-  - id: immich_fetch_album_bucket
+  - id: immich_fetch_timeline_bucket
     mode: single
     then:
       - if:
           condition:
-            lambda: 'return id(immich_album_selected_id).empty() || id(immich_album_time_bucket).empty();'
+            lambda: 'return id(immich_timeline_query).empty() || id(immich_timeline_time_bucket).empty();'
           then:
             - lambda: |-
-                ESP_LOGW("immich", "Album bucket fetch missing album or bucket");
+                ESP_LOGW("immich", "Timeline bucket fetch missing query or bucket");
                 clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-            - script.stop: immich_fetch_album_bucket
+            - script.stop: immich_fetch_timeline_bucket
       - http_request.get:
           id: http_req
           url: !lambda |-
-            return id(immich_url).state + "/api/timeline/bucket?albumId=" +
-                   id(immich_album_selected_id) + "&timeBucket=" + id(immich_album_time_bucket) +
-                   "&page=" + std::to_string(id(immich_album_page)) +
-                   "&pageSize=" + std::to_string(IMMICH_ALBUM_PAGE_SIZE);
+            return id(immich_url).state + "/api/timeline/bucket?" + id(immich_timeline_query) +
+                   "&timeBucket=" + id(immich_timeline_time_bucket) +
+                   "&page=" + std::to_string(id(immich_timeline_page)) +
+                   "&pageSize=" + std::to_string(IMMICH_TIMELINE_PAGE_SIZE);
           capture_response: true
           max_response_buffer_size: 24kB
           request_headers:
@@ -334,29 +342,29 @@ script:
             then:
               - lambda: |-
                   if (response->status_code != 200) {
-                    ESP_LOGW("immich", "Album bucket HTTP %d", response->status_code);
+                    ESP_LOGW("immich", "Timeline bucket HTTP %d", response->status_code);
                     clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
                     id(immich_last_http_status) = response->status_code;
                     id(immich_retry_cooldown_until_ms) = millis() + 30000;
                     return;
                   }
                   std::string orientation = id(photo_orientation_filter).current_option();
-                  id(immich_album_asset_id) = pick_immich_timeline_asset_id(body, orientation);
-                  if (id(immich_album_asset_id).empty()) {
+                  id(immich_timeline_asset_id) = pick_immich_timeline_asset_id(body, orientation);
+                  if (id(immich_timeline_asset_id).empty()) {
                     clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-                    ESP_LOGW("immich", "No usable album image in paged bucket response");
+                    ESP_LOGW("immich", "No usable image in paged timeline response");
                     id(immich_api_retries) = 0;
                     id(immich_retry_cooldown_until_ms) = millis() + 30000;
                     return;
                   }
-                  id(immich_fetch_album_asset).execute();
+                  id(immich_fetch_timeline_asset).execute();
           on_error:
             then:
               - lambda: |-
                   id(immich_api_retries)++;
-                  ESP_LOGW("immich", "Paged album bucket request error for slot %d (attempt %d)", id(target_slot), id(immich_api_retries));
+                  ESP_LOGW("immich", "Paged timeline bucket request error for slot %d (attempt %d)", id(target_slot), id(immich_api_retries));
                   clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-                  id(immich_diag_reason) = "paged album bucket request error";
+                  id(immich_diag_reason) = "paged timeline bucket request error";
                   id(log_immich_diag).execute();
               - if:
                   condition:
@@ -367,22 +375,22 @@ script:
                     - lambda: |-
                         id(immich_api_retries) = 0;
                         id(immich_retry_cooldown_until_ms) = millis() + 30000;
-                        ESP_LOGW("immich", "Album retries exhausted; pausing Immich fetches for 30s");
+                        ESP_LOGW("immich", "Timeline retries exhausted; pausing Immich fetches for 30s");
 
-  - id: immich_fetch_album_asset
+  - id: immich_fetch_timeline_asset
     mode: single
     then:
       - if:
           condition:
-            lambda: 'return id(immich_album_asset_id).empty();'
+            lambda: 'return id(immich_timeline_asset_id).empty();'
           then:
             - lambda: |-
-                ESP_LOGW("immich", "Album asset fetch missing asset ID");
+                ESP_LOGW("immich", "Timeline asset fetch missing asset ID");
                 clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-            - script.stop: immich_fetch_album_asset
+            - script.stop: immich_fetch_timeline_asset
       - http_request.get:
           id: http_req
-          url: !lambda 'return id(immich_url).state + "/api/assets/" + id(immich_album_asset_id);'
+          url: !lambda 'return id(immich_url).state + "/api/assets/" + id(immich_timeline_asset_id);'
           capture_response: true
           max_response_buffer_size: 16kB
           request_headers:
@@ -392,7 +400,7 @@ script:
             then:
               - lambda: |-
                   if (response->status_code != 200) {
-                    ESP_LOGW("immich", "Album asset HTTP %d", response->status_code);
+                    ESP_LOGW("immich", "Timeline asset HTTP %d", response->status_code);
                     clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
                     id(immich_last_http_status) = response->status_code;
                     id(immich_retry_cooldown_until_ms) = millis() + 30000;
@@ -403,7 +411,7 @@ script:
                     id(photo_orientation_filter).current_option());
                   if (img_url.empty()) {
                     clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-                    ESP_LOGW("immich", "Album asset metadata parse failed");
+                    ESP_LOGW("immich", "Timeline asset metadata parse failed");
                     id(immich_api_retries) = 0;
                     id(immich_retry_cooldown_until_ms) = millis() + 30000;
                     return;
@@ -411,7 +419,7 @@ script:
                   id(immich_api_retries) = 0;
                   int slot = id(target_slot);
                   auto &meta = get_slot(slot, id(slot0), id(slot1), id(slot2));
-                  ESP_LOGI("immich", "ALBUM slot %d: %s | %s | %s | %s | portrait=%d",
+                  ESP_LOGI("immich", "TIMELINE slot %d: %s | %s | %s | %s | portrait=%d",
                            slot, meta.asset_id.c_str(), meta.date.c_str(), meta.person.c_str(), meta.location.c_str(), meta.is_portrait);
                   id(espframe_core).slideshow().clear_preload_for_slot(
                     slot, id(portrait_preload_slot), id(portrait_preload_left_ready),
@@ -429,9 +437,9 @@ script:
             then:
               - lambda: |-
                   id(immich_api_retries)++;
-                  ESP_LOGW("immich", "Album asset request error for slot %d (attempt %d)", id(target_slot), id(immich_api_retries));
+                  ESP_LOGW("immich", "Timeline asset request error for slot %d (attempt %d)", id(target_slot), id(immich_api_retries));
                   clear_slot_fetch_in_flight(id(target_slot), id(slot_flags));
-                  id(immich_diag_reason) = "album asset request error";
+                  id(immich_diag_reason) = "timeline asset request error";
                   id(log_immich_diag).execute();
               - if:
                   condition:
@@ -442,7 +450,7 @@ script:
                     - lambda: |-
                         id(immich_api_retries) = 0;
                         id(immich_retry_cooldown_until_ms) = millis() + 30000;
-                        ESP_LOGW("immich", "Album retries exhausted; pausing Immich fetches for 30s");
+                        ESP_LOGW("immich", "Timeline retries exhausted; pausing Immich fetches for 30s");
 
   # ---------------------------------------------------------------------------
   # Fetch API metadata and start image download into target_slot
@@ -533,9 +541,13 @@ script:
       - lambda: 'id(immich_memory_fallback) = false;'
       - if:
           condition:
-            lambda: 'return id(photo_source_select).current_option() == "Album";'
+            lambda: |-
+              std::string source = id(photo_source_select).current_option();
+              if (source == "Album") return true;
+              return !id(immich_date_filter_enabled).state &&
+                     (source == "All Photos" || source == "Favorites" || source == "Person");
           then:
-            - script.execute: immich_fetch_album_into_slot
+            - script.execute: immich_fetch_timeline_into_slot
             - script.stop: immich_fetch_into_slot
       - http_request.post:
           id: http_req
