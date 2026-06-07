@@ -4045,11 +4045,8 @@ def check_manual_web_entity_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"Manual web entity {key} has unsafe firmware_file path: {firmware_file}")
             continue
         text = read(ROOT / firmware_file, errors)
+        require_contains(text, f"{domain}:", firmware_file, errors)
         require_contains(text, f"name: \"{name}\"", firmware_file, errors)
-        if domain == "button":
-            require_contains(text, "button:", firmware_file, errors)
-        elif domain == "update":
-            require_contains(text, "update:", firmware_file, errors)
 
 
 def check_generated_web_metadata(product: dict, web_text: str, errors: list[str]) -> None:
