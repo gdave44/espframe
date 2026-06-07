@@ -49,20 +49,6 @@ WEB_MANUAL_ENTITIES = {
     "apply_photo_source": {"entity": "button/Apply Photo Source", "firmware_file": "common/addon/immich_filter.yaml"},
     "firmware_check": {"entity": "button/Firmware: Check for Update", "firmware_file": "common/addon/firmware_update.yaml"},
 }
-WEB_LOCAL_STATE_KEYS = {
-    "api_key",
-    "backlight_on",
-    "beta_available",
-    "beta_version",
-    "brightness",
-    "brightness_current",
-    "immich_url",
-    "installed_version",
-    "latest_version",
-    "tz_labels",
-    "tz_options",
-    "update_available",
-}
 DOCS_SETTINGS_TABLES = {
     ROOT / "docs" / "screen-settings.md": {
         "screen_brightness": {"settings": ["brightness_day", "brightness_night"]},
@@ -262,6 +248,11 @@ def web_entity_aliases_metadata() -> dict[str, list[dict[str, Any]]]:
 
 def web_manual_entities_metadata() -> dict[str, dict[str, Any]]:
     return {key: {"entity": metadata["entity"]} for key, metadata in WEB_MANUAL_ENTITIES.items()}
+
+
+def web_local_state_keys(product: dict[str, Any] | None = None) -> set[str]:
+    data = product if product is not None else load_product()
+    return {str(key).strip() for key in data["project"].get("web_local_state_keys", []) if str(key).strip()}
 
 
 def web_initial_fetch_keys(product_settings: list[dict[str, Any]] | None = None) -> list[str]:

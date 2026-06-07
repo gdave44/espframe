@@ -17,7 +17,6 @@ from product_config import (
     DOCS_SETTINGS_TABLE_COLUMNS,
     DOCS_SETTINGS_TABLES,
     WEB_ENTITY_ALIASES,
-    WEB_LOCAL_STATE_KEYS,
     WEB_MANUAL_ENTITIES,
     WEB_STATIC_ENTITIES,
     default_public_manifest_urls,
@@ -28,6 +27,7 @@ from product_config import (
     release_matrix_devices,
     web_entity_aliases_metadata,
     web_initial_fetch_keys,
+    web_local_state_keys,
     web_manual_entities_metadata,
     web_settings_metadata,
     web_static_entities_metadata,
@@ -640,12 +640,14 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         errors.append("project.release_asset_suffixes must be a non-empty list")
     elif any(not isinstance(suffix, str) or not suffix.strip() or not suffix.startswith(".") for suffix in release_asset_suffixes):
         errors.append("project.release_asset_suffixes must only contain non-empty dot-prefixed strings")
-    for field in ("generated_asset_outputs", "generated_asset_sources", "web_template_placeholders"):
+    for field in ("generated_asset_outputs", "generated_asset_sources", "web_template_placeholders", "web_local_state_keys"):
         values = project.get(field, [])
         if not isinstance(values, list) or not values:
             errors.append(f"project.{field} must be a non-empty list")
         elif any(not isinstance(value, str) or not value.strip() for value in values):
             errors.append(f"project.{field} must only contain non-empty strings")
+        elif len(values) != len(set(values)):
+            errors.append(f"project.{field} must not contain duplicate entries")
 
     for field in ("support_url", "support_button_image_url"):
         value = str(project.get(field, "")).strip()
@@ -3260,8 +3262,13 @@ def check_web_template_key_references(product: dict, web_template: str, errors: 
     product_keys = {str(setting.get("key", "")).strip() for setting in product["settings"]}
     static_keys = set(WEB_STATIC_ENTITIES)
     manual_keys = set(WEB_MANUAL_ENTITIES)
-    known_state_keys = product_keys | static_keys | set(WEB_LOCAL_STATE_KEYS)
+    local_state_keys = web_local_state_keys(product)
+    known_state_keys = product_keys | static_keys | local_state_keys
     known_endpoint_keys = product_keys | static_keys | manual_keys
+
+    for key in local_state_keys:
+        if key in product_keys or key in static_keys:
+            errors.append(f"project.web_local_state_keys {key} duplicates generated state metadata")
 
     for key in sorted(set(WEB_STATE_REF_RE.findall(web_template))):
         if key not in known_state_keys:
