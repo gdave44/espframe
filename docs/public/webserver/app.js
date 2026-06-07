@@ -266,7 +266,7 @@
     return "/" + domain + "/" + encodeURIComponent(name);
   }
 
-  function settingEntityParts(key, fallbackDomain, fallbackName) {
+  function productSettingEntityParts(key) {
     var spec = PRODUCT_SETTINGS && PRODUCT_SETTINGS[key];
     var entity = spec && typeof spec.entity === "string" ? spec.entity : "";
     var slash = entity.indexOf("/");
@@ -276,68 +276,40 @@
         name: entity.slice(slash + 1)
       };
     }
-    return { domain: fallbackDomain, name: fallbackName };
-  }
-
-  function settingEndpoint(key, fallbackDomain, fallbackName) {
-    var parts = settingEntityParts(key, fallbackDomain, fallbackName);
-    return eid(parts.domain, parts.name);
+    return null;
   }
 
   var endpoints = {
     immich_url: eid("text", "Connection: Server URL"),
     api_key: eid("text", "Connection: API Key"),
-    clock_format: settingEndpoint("clock_format", "select", "Clock: Format"),
     timezone: eid("select", "Clock: Timezone"),
     ntp_server_1: eid("text", "Clock: NTP Server 1"),
     ntp_server_2: eid("text", "Clock: NTP Server 2"),
     ntp_server_3: eid("text", "Clock: NTP Server 3"),
-    interval: settingEndpoint("interval", "select", "Photos: Slideshow Interval"),
-    conn_timeout: settingEndpoint("conn_timeout", "select", "Screen: Connection Timeout"),
     backlight: eid("light", "Screen: Backlight"),
     show_clock: eid("switch", "Clock: Show"),
     firmware: eid("text_sensor", "Firmware: Version"),
     update: eid("update", "Firmware: Update"),
     update_beta: eid("update", "Firmware: Update Beta"),
-    auto_update: settingEndpoint("auto_update", "switch", "Firmware: Auto Update"),
-    beta_channel: settingEndpoint("beta_channel", "switch", "Firmware: Beta Channel"),
-    update_frequency: settingEndpoint("update_frequency", "select", "Firmware: Update Frequency"),
-    firmware_manifest_url: settingEndpoint("firmware_manifest_url", "text", "Firmware: Manifest URL"),
-    firmware_beta_manifest_url: settingEndpoint("firmware_beta_manifest_url", "text", "Firmware: Beta Manifest URL"),
-    schedule_enabled: settingEndpoint("schedule_enabled", "switch", "Screen: Schedule Enabled"),
-    schedule_on_hour: settingEndpoint("schedule_on_hour", "number", "Screen: Schedule On Hour"),
-    schedule_off_hour: settingEndpoint("schedule_off_hour", "number", "Screen: Schedule Off Hour"),
-    schedule_wake_timeout: settingEndpoint("schedule_wake_timeout", "number", "Screen: Schedule Wake Timeout"),
-    brightness_day: settingEndpoint("brightness_day", "number", "Screen: Daytime Brightness"),
-    brightness_night: settingEndpoint("brightness_night", "number", "Screen: Nighttime Brightness"),
     sunrise: eid("text_sensor", "Screen: Sunrise"),
     sunset: eid("text_sensor", "Screen: Sunset"),
-    photo_source: settingEndpoint("photo_source", "select", "Photos: Source"),
     album_ids: eid("text", "Photos: Album IDs"),
     album_labels: eid("text", "Photos: Album Labels"),
     person_ids: eid("text", "Photos: Person IDs"),
     person_labels: eid("text", "Photos: Person Labels"),
-    date_filter_enabled: settingEndpoint("date_filter_enabled", "switch", "Photos: Date Filter"),
-    date_filter_mode: settingEndpoint("date_filter_mode", "select", "Photos: Date Filter Mode"),
-    date_from: settingEndpoint("date_from", "text", "Photos: Date From"),
-    date_to: settingEndpoint("date_to", "text", "Photos: Date To"),
-    relative_amount: settingEndpoint("relative_amount", "number", "Photos: Relative Amount"),
-    relative_unit: settingEndpoint("relative_unit", "select", "Photos: Relative Unit"),
-    base_tone_enabled: settingEndpoint("base_tone_enabled", "switch", "Screen: Tone Adjustment"),
-    base_tone: settingEndpoint("base_tone", "number", "Screen: Display Tone"),
-    warm_tones_enabled: settingEndpoint("warm_tones_enabled", "switch", "Screen: Night Tone Adjustment"),
-    warm_tone_intensity: settingEndpoint("warm_tone_intensity", "number", "Screen: Warm Tone Intensity"),
-    warm_tone_override: settingEndpoint("warm_tone_override", "switch", "Screen: Warm Tone Override"),
-    portrait_pairing: settingEndpoint("portrait_pairing", "switch", "Photos: Portrait Pairing"),
-    photo_orientation: settingEndpoint("photo_orientation", "select", "Photos: Orientation"),
-    display_mode: settingEndpoint("display_mode", "select", "Photos: Display Mode"),
-    photo_metadata_date_enabled: settingEndpoint("photo_metadata_date_enabled", "switch", "Device: Metadata Date"),
-    photo_metadata_date_format: settingEndpoint("photo_metadata_date_format", "select", "Device: Metadata Date Format"),
-    photo_metadata_date_taken_format: settingEndpoint("photo_metadata_date_taken_format", "select", "Device: Metadata Date Taken Format"),
-    photo_metadata_location_enabled: settingEndpoint("photo_metadata_location_enabled", "switch", "Device: Metadata Location"),
-    screen_rotation: settingEndpoint("screen_rotation", "select", "Screen: Rotation"),
     developer_features_enabled: eid("switch", "Developer: Features"),
   };
+
+  function registerProductSettingEndpoints() {
+    if (!PRODUCT_SETTINGS) return;
+    Object.keys(PRODUCT_SETTINGS).forEach(function (key) {
+      var parts = productSettingEntityParts(key);
+      if (!parts) return;
+      endpoints[key] = eid(parts.domain, parts.name);
+    });
+  }
+
+  registerProductSettingEndpoints();
 
   function post(url, params) {
     var fullUrl = params ? url + "?" + new URLSearchParams(params).toString() : url;
