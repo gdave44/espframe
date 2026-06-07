@@ -1,21 +1,22 @@
 ---
 name: flash-displays
-description: Flash Espframe display firmware from this repository using ESPHome. Use when the user invokes /flash-displays, asks to flash, reflash, update, or upload firmware to the Immich Frame / 10-inch Guition display over its default IP address, an explicitly supplied IP address, or USB.
+description: Flash the Espframe 10-inch display firmware from this repository using ESPHome. Use when the user invokes /flash-displays, asks to flash, reflash, update, or upload firmware to the Immich Frame / 10-inch Guition display over its default IP address, an explicitly supplied IP address, or USB.
 ---
 
-# Flash Displays
+# Flash Display
 
 ## Overview
 
-Use the local development ESPHome config to flash the Espframe display from this checkout. This repository currently has one supported display: the Guition ESP32-P4 JC8012P4A1 10.1-inch Immich Frame.
+Use the local development ESPHome config to flash the Espframe display from this checkout. This repository has one supported device: the Guition ESP32-P4 JC8012P4A1 10.1-inch Immich Frame.
 
 Flash over OTA by default using `192.168.10.199`, unless the user supplies a different IP address. Flash over USB when the user explicitly asks for USB, local USB, serial, or gives a `/dev/cu.*` target.
 
-## Device Map
+## Target
 
-| Request names | ESPHome config directory | Default YAML | Default OTA target |
-|---|---|---|
-| `immich frame`, `10inch`, `10-inch`, `10inch P4`, `10-inch P4`, `JC8012P4A1`, `guition` | `devices/guition-esp32-p4-jc8012p4a1` | `dev.yaml` | `192.168.10.199` |
+- Device: Guition ESP32-P4 JC8012P4A1 10.1-inch Immich Frame.
+- ESPHome config directory: `devices/guition-esp32-p4-jc8012p4a1`.
+- Default YAML: `dev.yaml`.
+- Default OTA target: `192.168.10.199`.
 
 ## YAML Selection
 
@@ -34,7 +35,7 @@ Use `dev.yaml` by default. If the user names another YAML file, use that file in
    - Use `main` as the source. If not on `main`, switch only when it is safe and there are no blocking local changes; otherwise explain the issue.
    - If the worktree is dirty, do not revert or commit unrelated changes. Tell the user the flash will use the current local checkout as-is.
    - If the worktree is clean, run `git pull --ff-only` before flashing.
-2. Resolve the YAML file from the user's request. If none is provided, use `dev.yaml`.
+2. Resolve the YAML file from the user's request. If none is provided, use `dev.yaml` in `devices/guition-esp32-p4-jc8012p4a1`.
 3. Check that the selected config directory has a local `secrets.yaml` or another ESPHome-supported local secret source. If secrets are missing, stop and tell the user that WiFi credentials are needed beside the YAML before flashing.
 4. Resolve the upload target:
    - Use an explicit IP address from the user's request for OTA.
@@ -47,7 +48,7 @@ Use `dev.yaml` by default. If the user names another YAML file, use that file in
    - Otherwise prefer `/dev/cu.usbmodem201301` when present.
    - If that port is missing and exactly one obvious `/dev/cu.usbmodem*` port exists, use it.
    - If no clear USB modem port exists, ask the user to connect the display or choose the port.
-7. Flash with the command below. Do not run multiple flashes in parallel.
+7. Flash with the command below.
 8. After an OTA flash, ping the target again. A first ping may fail during reboot; retry once after a short delay before reporting a problem.
 9. Do not commit or push for flashing alone. Commit/push only if this skill or other source files were intentionally changed as part of the user request.
 
