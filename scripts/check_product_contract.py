@@ -621,6 +621,8 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         "release_uploaded_verify_dir",
         "release_source_factory_binary",
         "release_source_ota_binary",
+        "release_esphome_cache_dir",
+        "release_esphome_cache_key_prefix",
         "release_version_pattern",
         "stable_release_version_pattern",
         "firmware_version_placeholder_line",
@@ -867,6 +869,15 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
                 errors.append(f"project.{field} must only contain non-empty strings")
             if len(values) != len(set(values)):
                 errors.append(f"project.{field} must not contain duplicate patterns")
+    cache_hash_files = project.get("release_esphome_cache_hash_files", [])
+    if not isinstance(cache_hash_files, list) or not cache_hash_files:
+        errors.append("project.release_esphome_cache_hash_files must be a non-empty list")
+    else:
+        values = [str(path).strip() for path in cache_hash_files]
+        if any(not value for value in values):
+            errors.append("project.release_esphome_cache_hash_files must only contain non-empty strings")
+        if len(values) != len(set(values)):
+            errors.append("project.release_esphome_cache_hash_files must not contain duplicate paths")
     for field in ("release_version_pattern", "stable_release_version_pattern"):
         pattern = str(project.get(field, "")).strip()
         if pattern:
@@ -3003,6 +3014,11 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
     release_uploaded_verify_dir = str(project.get("release_uploaded_verify_dir", "")).strip()
     release_source_factory_binary = str(project.get("release_source_factory_binary", "")).strip()
     release_source_ota_binary = str(project.get("release_source_ota_binary", "")).strip()
+    release_esphome_cache_dir = str(project.get("release_esphome_cache_dir", "")).strip()
+    release_esphome_cache_key_prefix = str(project.get("release_esphome_cache_key_prefix", "")).strip()
+    release_esphome_cache_hash_files = [
+        str(path).strip() for path in project.get("release_esphome_cache_hash_files", []) if str(path).strip()
+    ]
     asset_suffixes = [str(value).strip() for value in project.get("release_asset_suffixes", []) if str(value).strip()]
     binary_download_patterns = [
         str(value).strip() for value in project.get("release_binary_download_patterns", []) if str(value).strip()
@@ -3123,6 +3139,42 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
             f"--dir {release_uploaded_verify_dir}",
         ):
             require_contains(release_workflow, needle, ".github/workflows/release.yml", errors)
+    if release_esphome_cache_dir:
+        for needle in (
+            f"path: {release_esphome_cache_dir}",
+            f"if [ -d {release_esphome_cache_dir} ]; then",
+            f"sudo chown -R \"$USER:$USER\" {release_esphome_cache_dir}",
+            f"chmod -R u+rwX {release_esphome_cache_dir}",
+            f"BUILD_DIR=\"{release_esphome_cache_dir}/build/${{{{ matrix.build_name }}}}/.pioenvs/${{{{ matrix.build_name }}}}\"",
+        ):
+            require_contains(release_workflow, needle, ".github/workflows/release.yml", errors)
+    if release_esphome_cache_key_prefix:
+        require_contains(
+            release_workflow,
+            f"key: {release_esphome_cache_key_prefix}-${{{{ matrix.slug }}}}-",
+            ".github/workflows/release.yml",
+            errors,
+        )
+        require_contains(
+            release_workflow,
+            "restore-keys: |",
+            ".github/workflows/release.yml",
+            errors,
+        )
+        require_contains(
+            release_workflow,
+            f"            {release_esphome_cache_key_prefix}-${{{{ matrix.slug }}}}-",
+            ".github/workflows/release.yml",
+            errors,
+        )
+    if release_esphome_cache_hash_files:
+        hash_files = "', '".join(release_esphome_cache_hash_files)
+        require_contains(
+            release_workflow,
+            f"hashFiles('{hash_files}')",
+            ".github/workflows/release.yml",
+            errors,
+        )
     for pattern in binary_download_patterns:
         require_contains(docs_workflow, f'--pattern "{pattern}"', ".github/workflows/docs.yml", errors)
     for pattern in manifest_download_patterns:
