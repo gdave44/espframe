@@ -270,6 +270,7 @@ def check_public_site_references(product: dict, errors: list[str]) -> None:
     project_name = str(product["project"].get("name", "")).strip()
     repository_url = str(product["project"].get("repository_url", "")).strip().rstrip("/")
 
+    esphome_yaml = read(ROOT / "devices" / "guition-esp32-p4-jc8012p4a1" / "esphome.yaml", errors)
     device_yaml = read(ROOT / "devices" / "guition-esp32-p4-jc8012p4a1" / "device" / "device.yaml", errors)
     robots = read(ROOT / "docs" / "public" / "robots.txt", errors)
     ai_txt = read(ROOT / "docs" / "public" / "ai.txt", errors)
@@ -286,6 +287,8 @@ def check_public_site_references(product: dict, errors: list[str]) -> None:
         require_contains(ai_txt, f"name: {project_name}", "docs/public/ai.txt", errors)
         require_contains(ai_txt, f'attribute to "{project_name}"', "docs/public/ai.txt", errors)
     if repository_url:
+        require_contains(esphome_yaml, f"url: {repository_url}", "devices/guition-esp32-p4-jc8012p4a1/esphome.yaml", errors)
+        require_contains(device_yaml, f'espframe_component_url: "{repository_url}"', "devices/guition-esp32-p4-jc8012p4a1/device/device.yaml", errors)
         require_contains(ai_txt, f"Source and issues: {repository_url}", "docs/public/ai.txt", errors)
         require_contains(manual_setup, f"url: {repository_url}", "docs/manual-setup.md", errors)
         require_contains(license_docs, f"({repository_url}/blob/main/LICENSE)", "docs/license.md", errors)
