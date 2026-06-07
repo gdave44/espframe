@@ -4149,6 +4149,23 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
 
 
 def check_manual_web_entity_metadata(product: dict, errors: list[str]) -> None:
+    product_keys = {str(setting.get("key", "")).strip() for setting in product["settings"]}
+    product_entities = {
+        f'{setting.get("entity", {}).get("domain", "")}/{setting.get("entity", {}).get("name", "")}'
+        for setting in product["settings"]
+    }
+    static_entities = web_static_entities(product)
+    static_entity_values = {
+        str(metadata.get("entity", "")).strip()
+        for metadata in static_entities.values()
+        if valid_entity_string(metadata.get("entity"))
+    }
+    alias_entity_values = {
+        str(alias.get("entity", "")).strip()
+        for aliases in web_entity_aliases(product).values()
+        for alias in aliases
+        if valid_entity_string(alias.get("entity"))
+    }
     manual_entities = web_manual_entities(product)
     seen_entities: set[str] = set()
     if not manual_entities:
@@ -4157,6 +4174,10 @@ def check_manual_web_entity_metadata(product: dict, errors: list[str]) -> None:
     for key, metadata in manual_entities.items():
         if not isinstance(key, str) or not key.strip():
             errors.append("Manual web entity keys must be non-empty strings")
+        if key in product_keys:
+            errors.append(f"Manual web entity {key} duplicates a product setting key")
+        if key in static_entities:
+            errors.append(f"Manual web entity {key} duplicates a static web entity key")
         if not isinstance(metadata, dict):
             errors.append(f"Manual web entity {key} metadata must be an object")
             continue
@@ -4166,6 +4187,12 @@ def check_manual_web_entity_metadata(product: dict, errors: list[str]) -> None:
             continue
         if entity in seen_entities:
             errors.append(f"Duplicate manual web entity: {entity}")
+        if entity in product_entities:
+            errors.append(f"Manual web entity {key} duplicates product entity {entity}")
+        if entity in static_entity_values:
+            errors.append(f"Manual web entity {key} duplicates static web entity {entity}")
+        if entity in alias_entity_values:
+            errors.append(f"Manual web entity {key} duplicates web entity alias {entity}")
         seen_entities.add(str(entity))
         domain, name = str(entity).split("/", 1)
         firmware_file = str(metadata.get("firmware_file", "")).strip()
