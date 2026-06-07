@@ -195,6 +195,14 @@
     "repository_url": "https://github.com/jtenniswood/espframe",
     "public_base_url": "https://jtenniswood.github.io/espframe",
     "release_url_base": "https://github.com/jtenniswood/espframe/releases/tag/",
+    "release_workflow_actions": {
+      "checkout": "actions/checkout@v6",
+      "cache": "actions/cache@v5",
+      "upload_artifact": "actions/upload-artifact@v7",
+      "download_artifact": "actions/download-artifact@v8"
+    },
+    "release_artifact_prefix": "firmware-",
+    "release_asset_suffixes": [".factory.bin", ".ota.bin", ".manifest.json"],
     "support_url": "https://www.buymeacoffee.com/jtenniswood",
     "support_button_image_url": "https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png",
     "node_version": "24",

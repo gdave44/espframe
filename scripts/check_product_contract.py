@@ -600,6 +600,7 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         "package_name",
         "repository_url",
         "release_url_base",
+        "release_artifact_prefix",
         "public_base_url",
         "support_url",
         "support_button_image_url",
@@ -625,6 +626,20 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         errors.append("project.release_url_base must end with /")
     if repository_url and release_url_base and release_url_base != f"{repository_url}/releases/tag/":
         errors.append("project.release_url_base must be based on project.repository_url")
+    release_actions = project.get("release_workflow_actions", {})
+    if not isinstance(release_actions, dict) or not release_actions:
+        errors.append("project.release_workflow_actions must be a non-empty object")
+    else:
+        for name, action in release_actions.items():
+            if not isinstance(name, str) or not name.strip():
+                errors.append("project.release_workflow_actions keys must be non-empty strings")
+            if not isinstance(action, str) or not action.strip():
+                errors.append(f"project.release_workflow_actions.{name} must be a non-empty string")
+    release_asset_suffixes = project.get("release_asset_suffixes", [])
+    if not isinstance(release_asset_suffixes, list) or not release_asset_suffixes:
+        errors.append("project.release_asset_suffixes must be a non-empty list")
+    elif any(not isinstance(suffix, str) or not suffix.strip() or not suffix.startswith(".") for suffix in release_asset_suffixes):
+        errors.append("project.release_asset_suffixes must only contain non-empty dot-prefixed strings")
 
     for field in ("support_url", "support_button_image_url"):
         value = str(project.get(field, "")).strip()
@@ -2638,6 +2653,10 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
     release_workflow = read(ROOT / ".github" / "workflows" / "release.yml", errors)
     docs_workflow = read(ROOT / ".github" / "workflows" / "docs.yml", errors)
     compile_workflow = read(ROOT / ".github" / "workflows" / "compile.yml", errors)
+    project = product["project"]
+    release_actions = project.get("release_workflow_actions", {})
+    artifact_prefix = str(project.get("release_artifact_prefix", "")).strip()
+    asset_suffixes = [str(value).strip() for value in project.get("release_asset_suffixes", []) if str(value).strip()]
     slugs = [str(device.get("slug", "")).strip() for device in product["devices"]]
     expected_slugs = " ".join(slugs)
     for label, text in (
@@ -2645,6 +2664,27 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         (".github/workflows/docs.yml", docs_workflow),
     ):
         require_contains(text, f"DEVICE_SLUGS: {expected_slugs}", label, errors)
+    if isinstance(release_actions, dict):
+        for action in release_actions.values():
+            if not isinstance(action, str) or not action.strip():
+                continue
+            if "download-artifact" in action or "upload-artifact" in action or "cache" in action:
+                require_contains(release_workflow, action.strip(), ".github/workflows/release.yml", errors)
+            elif "checkout" in action:
+                for label, text in (
+                    (".github/workflows/release.yml", release_workflow),
+                    (".github/workflows/docs.yml", docs_workflow),
+                    (".github/workflows/compile.yml", compile_workflow),
+                ):
+                    require_contains(text, action.strip(), label, errors)
+    if artifact_prefix:
+        require_contains(release_workflow, f"name: {artifact_prefix}${{{{ matrix.slug }}}}", ".github/workflows/release.yml", errors)
+        require_contains(release_workflow, f"pattern: {artifact_prefix}*", ".github/workflows/release.yml", errors)
+    for suffix in asset_suffixes:
+        require_contains(release_workflow, suffix, ".github/workflows/release.yml", errors)
+        if suffix == ".manifest.json":
+            require_contains(docs_workflow, suffix, ".github/workflows/docs.yml", errors)
+        require_contains(read(ROOT / "scripts" / "firmware_release.py", errors), suffix, "scripts/firmware_release.py", errors)
 
     try:
         release_devices = release_matrix_devices(product)
