@@ -599,6 +599,7 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         "owner_url",
         "package_name",
         "repository_url",
+        "github_default_branch",
         "release_url_base",
         "release_artifact_prefix",
         "release_version_pattern",
@@ -623,8 +624,15 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
 
     release_url_base = str(project.get("release_url_base", "")).strip()
     repository_url = str(project.get("repository_url", "")).strip().rstrip("/")
+    default_branch = str(project.get("github_default_branch", "")).strip()
     if repository_url and not repository_url.startswith("https://github.com/"):
         errors.append("project.repository_url must be an https GitHub URL")
+    if default_branch and not re.match(r"^[A-Za-z0-9._/-]+$", default_branch):
+        errors.append("project.github_default_branch contains unsupported characters")
+    if default_branch and str(project.get("manual_setup_package_ref", "")).strip() != default_branch:
+        errors.append("project.manual_setup_package_ref must match project.github_default_branch")
+    if default_branch and str(project.get("external_component_ref", "")).strip() != default_branch:
+        errors.append("project.external_component_ref must match project.github_default_branch")
     if release_url_base and not release_url_base.startswith("https://"):
         errors.append("project.release_url_base must be an https URL")
     if release_url_base and not release_url_base.endswith("/"):
@@ -705,6 +713,8 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         errors.append("project.firmware_placeholder_versions must only contain non-empty strings")
     elif "0.0.0" not in placeholder_versions:
         errors.append("project.firmware_placeholder_versions must include 0.0.0")
+    elif default_branch and default_branch not in placeholder_versions:
+        errors.append("project.firmware_placeholder_versions must include project.github_default_branch")
     changelog_categories = project.get("release_changelog_categories", [])
     if not isinstance(changelog_categories, list) or not changelog_categories:
         errors.append("project.release_changelog_categories must be a non-empty list")
@@ -2596,6 +2606,7 @@ def check_public_site_references(product: dict, errors: list[str]) -> None:
     web_installer_required_api = str(product["project"].get("web_installer_required_api", "")).strip()
     web_installer_unsupported_browsers = product["project"].get("web_installer_unsupported_browsers", [])
     repository_url = str(product["project"].get("repository_url", "")).strip().rstrip("/")
+    default_branch = str(product["project"].get("github_default_branch", "")).strip()
     support_url = str(product["project"].get("support_url", "")).strip()
     support_button_image_url = str(product["project"].get("support_button_image_url", "")).strip()
 
@@ -2619,7 +2630,8 @@ def check_public_site_references(product: dict, errors: list[str]) -> None:
     if repository_url:
         require_contains(ai_txt, f"Source and issues: {repository_url}", "docs/public/ai.txt", errors)
         require_contains(manual_setup, f"url: {repository_url}", "docs/manual-setup.md", errors)
-        require_contains(license_docs, f"({repository_url}/blob/main/LICENSE)", "docs/license.md", errors)
+        if default_branch:
+            require_contains(license_docs, f"({repository_url}/blob/{default_branch}/LICENSE)", "docs/license.md", errors)
         require_contains(roadmap, f"({repository_url}/issues)", "docs/roadmap.md", errors)
         require_contains(release_changelog, 'project_value("repository_url"', "scripts/release_changelog.py", errors)
     require_contains(ai_txt, f"url: {docs_url}", "docs/public/ai.txt", errors)
@@ -2771,6 +2783,7 @@ def check_docs_site_config(product: dict, errors: list[str]) -> None:
     docs_url = public_url("", product)
     base_path = f"/{base_url.rstrip('/').rsplit('/', 1)[-1]}/"
     repository_url = str(project.get("repository_url", "")).strip().rstrip("/")
+    default_branch = str(project.get("github_default_branch", "")).strip()
     owner_name = str(project.get("owner_name", "")).strip()
     owner_url = str(project.get("owner_url", "")).strip()
 
@@ -2793,7 +2806,8 @@ def check_docs_site_config(product: dict, errors: list[str]) -> None:
     require_contains(config, f"base: '{base_path}'", "docs/.vitepress/config.mts", errors)
     if repository_url:
         require_contains(config, f"link: '{repository_url}'", "docs/.vitepress/config.mts", errors)
-        require_contains(config, f"pattern: '{repository_url}/edit/main/docs/:path'", "docs/.vitepress/config.mts", errors)
+        if default_branch:
+            require_contains(config, f"pattern: '{repository_url}/edit/{default_branch}/docs/:path'", "docs/.vitepress/config.mts", errors)
     if owner_name:
         require_contains(config, f"name: '{owner_name}'", "docs/.vitepress/config.mts", errors)
     if owner_url:
@@ -3210,6 +3224,9 @@ def check_workflows(product: dict, errors: list[str]) -> None:
 
     docs_workflow = read(ROOT / ".github" / "workflows" / "docs.yml", errors)
     release_workflow = read(ROOT / ".github" / "workflows" / "release.yml", errors)
+    default_branch = str(product["project"].get("github_default_branch", "")).strip()
+    if default_branch:
+        require_contains(docs_workflow, f"branches: [{default_branch}]", ".github/workflows/docs.yml", errors)
     workflow_texts = {
         "compile": (".github/workflows/compile.yml", compile_workflow),
         "docs": (".github/workflows/docs.yml", docs_workflow),

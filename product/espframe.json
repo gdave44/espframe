@@ -321,6 +321,7 @@
     "owner_url": "https://github.com/jtenniswood",
     "package_name": "jtenniswood.immich-frame",
     "repository_url": "https://github.com/jtenniswood/espframe",
+    "github_default_branch": "main",
     "public_base_url": "https://jtenniswood.github.io/espframe",
     "release_url_base": "https://github.com/jtenniswood/espframe/releases/tag/",
     "release_workflow_actions": {
