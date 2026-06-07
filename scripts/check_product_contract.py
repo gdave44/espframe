@@ -214,6 +214,8 @@ def check_devices(product: dict, errors: list[str]) -> None:
             "package_yaml",
             "local_yaml",
             "device_yaml",
+            "panel_url",
+            "stand_url",
             "public_manifest",
             "public_beta_manifest",
         ):
@@ -224,6 +226,11 @@ def check_devices(product: dict, errors: list[str]) -> None:
             path = check_relative_path(device.get(field), f"Device {slug} {field}", errors)
             if path:
                 read(ROOT / path, errors)
+
+        for field in ("panel_url", "stand_url"):
+            url = str(device.get(field, "")).strip()
+            if url and not url.startswith("https://"):
+                errors.append(f"Device {slug} {field} must be an https URL")
 
 
 def check_project_metadata(product: dict, errors: list[str]) -> None:
@@ -305,10 +312,11 @@ def check_public_site_references(product: dict, errors: list[str]) -> None:
     robots = read(ROOT / "docs" / "public" / "robots.txt", errors)
     ai_txt = read(ROOT / "docs" / "public" / "ai.txt", errors)
     readme = read(ROOT / "README.md", errors)
+    index_docs = read(ROOT / "docs" / "index.md", errors)
+    install_docs = read(ROOT / "docs" / "install.md", errors)
     manual_setup = read(ROOT / "docs" / "manual-setup.md", errors)
     license_docs = read(ROOT / "docs" / "license.md", errors)
     roadmap = read(ROOT / "docs" / "roadmap.md", errors)
-    install_docs = read(ROOT / "docs" / "install.md", errors)
     troubleshooting_docs = read(ROOT / "docs" / "troubleshooting.md", errors)
     usb_flashing_docs = read(ROOT / "docs" / "usb-flashing.md", errors)
     release_changelog = read(ROOT / "scripts" / "release_changelog.py", errors)
@@ -335,10 +343,25 @@ def check_public_site_references(product: dict, errors: list[str]) -> None:
         slug = str(device.get("slug", "")).strip()
         esphome_name = str(device.get("esphome_name", "")).strip()
         friendly_name = str(device.get("friendly_name", "")).strip()
+        model = str(device.get("model", "")).strip()
+        model_code = model.split()[-1] if model else ""
+        panel_url = str(device.get("panel_url", "")).strip()
+        stand_url = str(device.get("stand_url", "")).strip()
         local_yaml = check_relative_path(device.get("local_yaml"), f"Device {slug} local_yaml", errors)
         package_yaml = check_relative_path(device.get("package_yaml"), f"Device {slug} package_yaml", errors)
         build_yaml = check_relative_path(device.get("build_yaml"), f"Device {slug} build_yaml", errors)
         device_yaml = check_relative_path(device.get("device_yaml"), f"Device {slug} device_yaml", errors)
+        for label, text in (
+            ("README.md", readme),
+            ("docs/index.md", index_docs),
+            ("docs/install.md", install_docs),
+        ):
+            if model_code:
+                require_contains(text, model_code, label, errors)
+            if panel_url:
+                require_contains(text, panel_url, label, errors)
+            if stand_url:
+                require_contains(text, stand_url, label, errors)
         if esphome_name:
             for label, text in (
                 ("docs/install.md", install_docs),
