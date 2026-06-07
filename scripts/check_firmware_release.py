@@ -19,7 +19,7 @@ SLUG = "demo-panel"
 VERSION = "v9.8.7"
 BETA_VERSION = "v9.8.8-beta.1"
 CHIP = "ESP32-S3"
-PROJECT_NAME = "jtenniswood.immich-frame"
+PROJECT_NAME = firmware_release.PROJECT_NAME
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
