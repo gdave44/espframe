@@ -240,6 +240,41 @@ def check_docs_table_membership(product: dict, errors: list[str]) -> None:
                 errors.append(f"{key} declares {docs_file} but is not included in a generated settings table")
 
 
+def check_docs_table_markers(errors: list[str]) -> None:
+    marker_re = re.compile(r"<!-- ESPFRAME:SETTINGS_TABLE ([A-Za-z0-9_-]+) (START|END) -->")
+    expected = {
+        (rel(path), block_id)
+        for path, table_blocks in DOCS_SETTINGS_TABLES.items()
+        for block_id in table_blocks
+    }
+    seen: dict[tuple[str, str], dict[str, int]] = {}
+    for docs_path in sorted(ROOT.glob("docs/**/*.md")):
+        relative_path = rel(docs_path)
+        text = read(docs_path, errors)
+        for match in marker_re.finditer(text):
+            block_id, side = match.groups()
+            key = (relative_path, block_id)
+            if key not in expected:
+                errors.append(f"{relative_path} has unregistered settings table marker {block_id}")
+            seen.setdefault(key, {"START": 0, "END": 0})[side] += 1
+
+    for key in sorted(expected):
+        counts = seen.get(key, {"START": 0, "END": 0})
+        if counts["START"] != 1 or counts["END"] != 1:
+            errors.append(
+                f"{key[0]} settings table {key[1]} needs exactly one START and one END marker "
+                f"(found {counts['START']} START, {counts['END']} END)"
+            )
+    for key, counts in sorted(seen.items()):
+        if key in expected and (counts["START"] != 1 or counts["END"] != 1):
+            continue
+        if key not in expected and (counts["START"] != counts["END"] or counts["START"] > 1):
+            errors.append(
+                f"{key[0]} unregistered settings table {key[1]} has "
+                f"{counts['START']} START and {counts['END']} END markers"
+            )
+
+
 def check_setting(setting: dict, web_text: str, errors: list[str]) -> None:
     key = str(setting.get("key", "")).strip()
     entity = setting.get("entity") or {}
@@ -312,6 +347,7 @@ def check_settings(product: dict, errors: list[str]) -> None:
     web_text = read(WEB_APP, errors)
     check_generated_web_metadata(product, web_text, errors)
     check_docs_table_membership(product, errors)
+    check_docs_table_markers(errors)
     require_contains(web_template, "__ESPFRAME_PRODUCT_SETTINGS__", rel(WEB_TEMPLATE), errors)
     require_contains(web_template, "__ESPFRAME_INITIAL_FETCH_KEYS__", rel(WEB_TEMPLATE), errors)
     for needle in (
