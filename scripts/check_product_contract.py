@@ -630,6 +630,9 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         "public_base_url",
         "support_url",
         "support_button_image_url",
+        "github_docs_release_tag_env",
+        "github_docs_release_tag_output",
+        "github_docs_prerelease_tag_env",
         "web_ui_logs_event_source",
         "web_ui_logs_event_name",
         "web_ui_logs_clear_label",
@@ -3073,6 +3076,9 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
     sparse_checkout_cone_mode = project.get("github_sparse_checkout_cone_mode")
     docs_verify_retries = project.get("docs_firmware_verify_retries")
     docs_verify_delay = project.get("docs_firmware_verify_delay_seconds")
+    docs_release_tag_env = str(project.get("github_docs_release_tag_env", "")).strip()
+    docs_release_tag_output = str(project.get("github_docs_release_tag_output", "")).strip()
+    docs_prerelease_tag_env = str(project.get("github_docs_prerelease_tag_env", "")).strip()
     prerelease_lookup_limit = project.get("github_prerelease_lookup_limit")
     actions_runner = str(project.get("github_actions_runner", "")).strip()
     github_cli_env = project.get("github_cli_env", {})
@@ -3311,6 +3317,36 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         require_contains(docs_workflow, f"--retries {docs_verify_retries}", ".github/workflows/docs.yml", errors)
     if isinstance(docs_verify_delay, int) and not isinstance(docs_verify_delay, bool):
         require_contains(docs_workflow, f"--delay {docs_verify_delay}", ".github/workflows/docs.yml", errors)
+    if docs_release_tag_env:
+        release_tag_ref = f"${docs_release_tag_env}"
+        for needle in (
+            f"{docs_release_tag_env}=$(gh release view --json tagName -q .tagName)",
+            f'echo "{docs_release_tag_env}=${{{docs_release_tag_env}}}" >> "$GITHUB_ENV"',
+            f'gh release download "{release_tag_ref}"',
+            f'--version "{release_tag_ref}"',
+        ):
+            require_contains(docs_workflow, needle, ".github/workflows/docs.yml", errors)
+    if docs_release_tag_env and docs_release_tag_output:
+        require_contains(
+            docs_workflow,
+            f'echo "{docs_release_tag_output}=${{{docs_release_tag_env}}}" >> "$GITHUB_OUTPUT"',
+            ".github/workflows/docs.yml",
+            errors,
+        )
+        require_contains(
+            docs_workflow,
+            f"${{{{ needs.download-firmware.outputs.{docs_release_tag_output} }}}}",
+            ".github/workflows/docs.yml",
+            errors,
+        )
+    if docs_prerelease_tag_env:
+        prerelease_tag_ref = f"${docs_prerelease_tag_env}"
+        for needle in (
+            f"{docs_prerelease_tag_env}=$(gh release list",
+            f'if [ -n "{prerelease_tag_ref}" ]; then',
+            f'gh release download "{prerelease_tag_ref}"',
+        ):
+            require_contains(docs_workflow, needle, ".github/workflows/docs.yml", errors)
     if isinstance(firmware_compile_timeout, int) and not isinstance(firmware_compile_timeout, bool):
         for label, text in (
             (".github/workflows/release.yml", release_workflow),
