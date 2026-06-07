@@ -52,6 +52,7 @@ script:
           then:
             - lvgl.display.set_rotation: ${screen_rotation_0}
             - switch.turn_on: portrait_pairing_enabled
+            - delay: 100ms
             - script.execute: immich_reapply_current_image_layout
       - if:
           condition:
@@ -59,6 +60,7 @@ script:
           then:
             - lvgl.display.set_rotation: ${screen_rotation_90}
             - switch.turn_off: portrait_pairing_enabled
+            - delay: 100ms
             - script.execute: immich_reapply_current_image_layout
       - if:
           condition:
@@ -66,6 +68,7 @@ script:
           then:
             - lvgl.display.set_rotation: ${screen_rotation_180}
             - switch.turn_on: portrait_pairing_enabled
+            - delay: 100ms
             - script.execute: immich_reapply_current_image_layout
       - if:
           condition:
@@ -73,4 +76,5 @@ script:
           then:
             - lvgl.display.set_rotation: ${screen_rotation_270}
             - switch.turn_off: portrait_pairing_enabled
+            - delay: 100ms
             - script.execute: immich_reapply_current_image_layout

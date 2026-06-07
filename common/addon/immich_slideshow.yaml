@@ -781,7 +781,9 @@ script:
           id(immich_portrait_right).abort_download();
           id(immich_portrait_preload_left).abort_download();
           id(immich_portrait_preload_right).abort_download();
+          lv_obj_add_flag(id(slideshow_img), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(portrait_pair_container), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_invalidate(id(slideshow_page)->obj);
           id(portrait) = PortraitState{};
           id(portrait_preload_slot) = -1;
           id(portrait_preload_left_ready) = false;
