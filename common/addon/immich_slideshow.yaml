@@ -650,12 +650,12 @@ script:
           };
 
           if (source == "Album" && !has_configured_ids(id(immich_album_ids).state)) {
-            lv_label_set_text(id(photo_source_menu_message), "Set up album IDs in the web settings first.");
+            lv_label_set_text(id(photo_source_menu_message), "Set up album IDs first.");
             lv_obj_clear_flag(id(photo_source_menu_message), LV_OBJ_FLAG_HIDDEN);
             return;
           }
           if (source == "Person" && !has_configured_ids(id(immich_person_ids).state)) {
-            lv_label_set_text(id(photo_source_menu_message), "Set up person IDs in the web settings first.");
+            lv_label_set_text(id(photo_source_menu_message), "Set up person IDs first.");
             lv_obj_clear_flag(id(photo_source_menu_message), LV_OBJ_FLAG_HIDDEN);
             return;
           }
