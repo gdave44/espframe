@@ -246,6 +246,10 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         "web_installer_required_api",
         "immich_api_key_mode",
         "immich_api_key_privacy_promise",
+        "home_assistant_name",
+        "home_assistant_url",
+        "home_assistant_requirement",
+        "home_assistant_integration_platform",
         "favicon",
         "npm_package_name",
         "license_id",
@@ -282,6 +286,9 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         value = str(project.get(field, "")).strip()
         if value and not value.startswith("https://"):
             errors.append(f"project.{field} must be an https URL")
+    home_assistant_url = str(project.get("home_assistant_url", "")).strip()
+    if home_assistant_url and not home_assistant_url.startswith("https://"):
+        errors.append("project.home_assistant_url must be an https URL")
     owner_url = str(project.get("owner_url", "")).strip()
     if owner_url and not owner_url.startswith("https://"):
         errors.append("project.owner_url must be an https URL")
@@ -305,6 +312,11 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"project.{field} must be a non-empty list")
         elif any(not isinstance(value, str) or not value.strip() for value in values):
             errors.append(f"project.{field} must only contain non-empty strings")
+    home_assistant_features = project.get("home_assistant_integration_features", [])
+    if not isinstance(home_assistant_features, list) or not home_assistant_features:
+        errors.append("project.home_assistant_integration_features must be a non-empty list")
+    elif any(not isinstance(value, str) or not value.strip() for value in home_assistant_features):
+        errors.append("project.home_assistant_integration_features must only contain non-empty strings")
     permissions = project.get("immich_api_key_permissions", [])
     if not isinstance(permissions, list) or not permissions:
         errors.append("project.immich_api_key_permissions must be a non-empty list")
@@ -441,6 +453,47 @@ def check_immich_connection_metadata(product: dict, errors: list[str]) -> None:
             for value in values:
                 if isinstance(value, str) and value.strip():
                     require_contains(text, value.strip(), f"{label} {field_name}", errors)
+
+
+def check_home_assistant_metadata(product: dict, errors: list[str]) -> None:
+    project = product["project"]
+    name = str(project.get("home_assistant_name", "")).strip()
+    url = str(project.get("home_assistant_url", "")).strip()
+    requirement = str(project.get("home_assistant_requirement", "")).strip()
+    platform = str(project.get("home_assistant_integration_platform", "")).strip()
+    features = project.get("home_assistant_integration_features", [])
+
+    readme = read(ROOT / "README.md", errors)
+    index_docs = read(ROOT / "docs" / "index.md", errors)
+    immich_photo_frame_docs = read(ROOT / "docs" / "immich-photo-frame.md", errors)
+    home_assistant_docs = read(ROOT / "docs" / "home-assistant.md", errors)
+
+    docs_to_check = (
+        ("README.md", readme),
+        ("docs/index.md", index_docs),
+        ("docs/immich-photo-frame.md", immich_photo_frame_docs),
+        ("docs/home-assistant.md", home_assistant_docs),
+    )
+    if name:
+        for label, text in docs_to_check:
+            require_contains(text, name, label, errors)
+    if requirement:
+        require_contains(readme, requirement, "README.md", errors)
+        require_contains(home_assistant_docs, requirement, "docs/home-assistant.md", errors)
+    if url:
+        require_contains(home_assistant_docs, url, "docs/home-assistant.md", errors)
+    if platform:
+        for label, text in (
+            ("README.md", readme),
+            ("docs/immich-photo-frame.md", immich_photo_frame_docs),
+            ("docs/home-assistant.md", home_assistant_docs),
+        ):
+            require_contains(text, platform, label, errors)
+    if isinstance(features, list):
+        for feature in features:
+            if not isinstance(feature, str) or not feature.strip():
+                continue
+            require_contains(home_assistant_docs, feature.strip(), "docs/home-assistant.md", errors)
 
 
 def check_public_manifest_urls(product: dict, errors: list[str]) -> None:
@@ -1219,6 +1272,7 @@ def main() -> int:
     check_license_metadata(product, errors)
     check_immich_api_key_metadata(product, errors)
     check_immich_connection_metadata(product, errors)
+    check_home_assistant_metadata(product, errors)
     check_devices(product, errors)
     check_public_manifest_urls(product, errors)
     check_public_site_references(product, errors)
