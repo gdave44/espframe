@@ -113,6 +113,25 @@
       "tests/fixtures/backup/espframe-config-v1-full.json",
       "tests/fixtures/backup/espframe-config-v1-partial.json"
     ],
+    "compatibility_fixture_files": {
+      "accepted": [
+        "tests/fixtures/compat/espframe-config-v1-partial-unknown-fields.json",
+        "tests/fixtures/compat/espframe-config-v1-missing-groups.json"
+      ],
+      "rejected_fields": [
+        {
+          "path": "tests/fixtures/compat/espframe-config-v1-invalid-photo-ids.json",
+          "messages": ["Import skipped invalid album IDs", "Import skipped invalid person IDs"]
+        },
+        {
+          "path": "tests/fixtures/compat/espframe-config-v1-invalid-manifest-urls.json",
+          "messages": [
+            "Stable firmware URL was invalid - not imported",
+            "Beta firmware URL was invalid - not imported"
+          ]
+        }
+      ]
+    },
     "privacy_connection_model": "connects directly to your Immich server",
     "privacy_network_scope": "your own network",
     "privacy_no_cloud_service": "no Espframe cloud service",

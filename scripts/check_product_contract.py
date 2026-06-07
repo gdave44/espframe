@@ -1176,6 +1176,34 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
             path = check_relative_path(fixture_file, "project.backup_fixture_files entry", errors)
             if path:
                 read(ROOT / path, errors)
+    compatibility_fixture_files = project.get("compatibility_fixture_files", {})
+    if not isinstance(compatibility_fixture_files, dict) or not compatibility_fixture_files:
+        errors.append("project.compatibility_fixture_files must be a non-empty object")
+    else:
+        accepted = compatibility_fixture_files.get("accepted", [])
+        rejected_fields = compatibility_fixture_files.get("rejected_fields", [])
+        if not isinstance(accepted, list) or not accepted:
+            errors.append("project.compatibility_fixture_files.accepted must be a non-empty list")
+        else:
+            for fixture_file in accepted:
+                path = check_relative_path(fixture_file, "project.compatibility_fixture_files.accepted entry", errors)
+                if path:
+                    read(ROOT / path, errors)
+        if not isinstance(rejected_fields, list) or not rejected_fields:
+            errors.append("project.compatibility_fixture_files.rejected_fields must be a non-empty list")
+        else:
+            for item in rejected_fields:
+                if not isinstance(item, dict):
+                    errors.append("project.compatibility_fixture_files.rejected_fields entries must be objects")
+                    continue
+                path = check_relative_path(item.get("path"), "project.compatibility_fixture_files.rejected_fields path", errors)
+                if path:
+                    read(ROOT / path, errors)
+                messages = item.get("messages", [])
+                if not isinstance(messages, list) or not messages:
+                    errors.append(f"project.compatibility_fixture_files.rejected_fields {path or '<missing>'} messages must be a non-empty list")
+                elif any(not isinstance(message, str) or not message.strip() for message in messages):
+                    errors.append(f"project.compatibility_fixture_files.rejected_fields {path or '<missing>'} messages must be non-empty strings")
     touch_controls = project.get("touch_controls", [])
     if not isinstance(touch_controls, list) or not touch_controls:
         errors.append("project.touch_controls must be a non-empty list")
@@ -1497,9 +1525,13 @@ def check_npm_package_metadata(product: dict, errors: list[str]) -> None:
     else:
         if scripts.get("check:backup") != "python3 scripts/check_backup_config.py":
             errors.append("package.json check:backup must run scripts/check_backup_config.py")
+        if scripts.get("check:compat") != "python3 scripts/check_compatibility.py":
+            errors.append("package.json check:compat must run scripts/check_compatibility.py")
         check_all = str(scripts.get("check:all", ""))
         if "npm run check:backup" not in check_all:
             errors.append("package.json check:all must include check:backup")
+        if "npm run check:compat" not in check_all:
+            errors.append("package.json check:all must include check:compat")
     if package_lock.get("name") != expected_name:
         errors.append("package-lock.json name must match project.npm_package_name")
     root_package = package_lock.get("packages", {}).get("", {})

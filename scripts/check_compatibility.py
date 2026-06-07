@@ -1,0 +1,271 @@
+#!/usr/bin/env python3
+"""Validate upgrade-sensitive compatibility contracts.
+
+This is a Phase 2 gate: it checks saved config import tolerance, generated web
+metadata, and backup field endpoint coverage before structural refactors.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+from product_config import (
+    default_public_manifest_urls,
+    load_product,
+    public_base_url,
+    web_entity_aliases_metadata,
+    web_initial_fetch_keys,
+    web_live_render_state_keys,
+    web_live_render_state_prefixes,
+    web_manual_entities_metadata,
+    web_manual_state_keys,
+    web_settings_metadata,
+    web_static_entities_metadata,
+)
+
+
+ROOT = Path(__file__).resolve().parent.parent
+WEB_APP = ROOT / "docs" / "public" / "webserver" / "app.js"
+UUID_LIST_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+    r"(,[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})*$"
+)
+
+BACKUP_FIELD_STATE_KEYS = {
+    ("connection", "immich_url"): "immich_url",
+    ("connection", "api_key"): "api_key",
+    ("photos", "source"): "photo_source",
+    ("photos", "album_ids"): "album_ids",
+    ("photos", "album_labels"): "album_labels",
+    ("photos", "person_ids"): "person_ids",
+    ("photos", "person_labels"): "person_labels",
+    ("photos", "date_filter_enabled"): "date_filter_enabled",
+    ("photos", "date_filter_mode"): "date_filter_mode",
+    ("photos", "date_from"): "date_from",
+    ("photos", "date_to"): "date_to",
+    ("photos", "relative_amount"): "relative_amount",
+    ("photos", "relative_unit"): "relative_unit",
+    ("photos", "orientation"): "photo_orientation",
+    ("photos", "portrait_pairing"): "portrait_pairing",
+    ("photos", "display_mode"): "display_mode",
+    ("frequency", "interval"): "interval",
+    ("frequency", "conn_timeout"): "conn_timeout",
+    ("firmware_updates", "auto_update"): "auto_update",
+    ("firmware_updates", "beta_channel"): "beta_channel",
+    ("firmware_updates", "update_frequency"): "update_frequency",
+    ("firmware_updates", "manifest_url"): "firmware_manifest_url",
+    ("firmware_updates", "beta_manifest_url"): "firmware_beta_manifest_url",
+    ("clock", "show"): "show_clock",
+    ("clock", "format"): "clock_format",
+    ("clock", "timezone"): "timezone",
+    ("clock", "ntp_servers"): ("ntp_server_1", "ntp_server_2", "ntp_server_3"),
+    ("screen", "brightness_day"): "brightness_day",
+    ("screen", "brightness_night"): "brightness_night",
+    ("screen", "schedule_enabled"): "schedule_enabled",
+    ("screen", "schedule_on_hour"): "schedule_on_hour",
+    ("screen", "schedule_off_hour"): "schedule_off_hour",
+    ("screen", "schedule_wake_timeout"): "schedule_wake_timeout",
+    ("screen", "base_tone_enabled"): "base_tone_enabled",
+    ("screen", "base_tone"): "base_tone",
+    ("screen", "warm_tones_enabled"): "warm_tones_enabled",
+    ("screen", "warm_tone_intensity"): "warm_tone_intensity",
+    ("screen", "warm_tone_override"): "warm_tone_override",
+    ("screen", "rotation"): "screen_rotation",
+}
+
+
+def rel(path: Path) -> str:
+    return str(path.relative_to(ROOT))
+
+
+def load_json(path: Path, errors: list[str]) -> dict[str, Any]:
+    try:
+        data = json.loads(path.read_text())
+    except FileNotFoundError:
+        errors.append(f"Missing compatibility fixture: {rel(path)}")
+        return {}
+    except json.JSONDecodeError as exc:
+        errors.append(f"{rel(path)} is not valid JSON: {exc}")
+        return {}
+    if not isinstance(data, dict):
+        errors.append(f"{rel(path)} must contain a JSON object")
+        return {}
+    return data
+
+
+def extract_js_json_var(text: str, var_name: str, errors: list[str]) -> object | None:
+    match = re.search(rf"\bvar {re.escape(var_name)} = (.*?);", text)
+    if not match:
+        errors.append(f"Generated web app is missing {var_name}")
+        return None
+    try:
+        return json.loads(match.group(1))
+    except json.JSONDecodeError as exc:
+        errors.append(f"Generated web app {var_name} is not valid JSON: {exc}")
+        return None
+
+
+def require_contains(text: str, needle: str, label: str, errors: list[str]) -> None:
+    if needle not in text:
+        errors.append(f"{label} is missing {needle!r}")
+
+
+def all_endpoint_keys(product: dict[str, Any]) -> set[str]:
+    return (
+        {str(setting["key"]) for setting in product["settings"]}
+        | set(product["project"].get("web_static_entities", {}))
+        | set(product["project"].get("web_manual_entities", {}))
+    )
+
+
+def check_generated_web_metadata(product: dict[str, Any], errors: list[str]) -> None:
+    web_text = WEB_APP.read_text()
+    expected = {
+        "PRODUCT_SETTINGS": web_settings_metadata(product["settings"]),
+        "STATIC_ENTITIES": web_static_entities_metadata(product),
+        "MANUAL_ENTITIES": web_manual_entities_metadata(product),
+        "MANUAL_STATE_KEYS": web_manual_state_keys(product),
+        "ENTITY_ALIASES": web_entity_aliases_metadata(product),
+        "INITIAL_FETCH_KEYS": web_initial_fetch_keys(product["settings"]),
+        "LIVE_RENDER_STATE_KEYS": web_live_render_state_keys(product),
+        "LIVE_RENDER_STATE_PREFIXES": web_live_render_state_prefixes(product),
+        "FIRMWARE_MANIFEST_URLS": default_public_manifest_urls(product),
+        "DOCS_BASE_URL": public_base_url(product),
+        "WEB_UI_TABS": product["project"].get("web_ui_tabs"),
+        "WEB_UI_LOGS_RETAINED_LINES": product["project"].get("web_ui_logs_retained_lines"),
+    }
+    for name, value in expected.items():
+        actual = extract_js_json_var(web_text, name, errors)
+        if actual is not None and actual != value:
+            errors.append(f"Generated web {name} must match product metadata")
+
+
+def check_backup_endpoint_mapping(product: dict[str, Any], errors: list[str]) -> None:
+    configured = {
+        (str(group), str(field))
+        for group, fields in product["project"].get("backup_export_fields", {}).items()
+        for field in fields
+    }
+    missing_mapping = sorted(configured - set(BACKUP_FIELD_STATE_KEYS))
+    extra_mapping = sorted(set(BACKUP_FIELD_STATE_KEYS) - configured)
+    if missing_mapping:
+        errors.append(
+            "Compatibility backup field map is missing fields: "
+            + ", ".join(f"{group}.{field}" for group, field in missing_mapping)
+        )
+    if extra_mapping:
+        errors.append(
+            "Compatibility backup field map has unknown fields: "
+            + ", ".join(f"{group}.{field}" for group, field in extra_mapping)
+        )
+
+    endpoint_keys = all_endpoint_keys(product)
+    for group_field, state_keys in BACKUP_FIELD_STATE_KEYS.items():
+        keys = state_keys if isinstance(state_keys, tuple) else (state_keys,)
+        for key in keys:
+            if key not in endpoint_keys:
+                group, field = group_field
+                errors.append(f"Backup field {group}.{field} maps to unknown endpoint key {key}")
+
+
+def fixture_validation_errors(data: dict[str, Any], product: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    project = product["project"]
+    if data.get("version") != project.get("backup_config_version"):
+        errors.append("missing or unsupported version")
+
+    options = {
+        str(setting["key"]): {str(option) for option in setting.get("options", [])}
+        for setting in product["settings"]
+    }
+    photos = data.get("photos", {})
+    if isinstance(photos, dict):
+        for backup_key, setting_key in (
+            ("source", "photo_source"),
+            ("date_filter_mode", "date_filter_mode"),
+            ("relative_unit", "relative_unit"),
+            ("orientation", "photo_orientation"),
+            ("display_mode", "display_mode"),
+        ):
+            value = photos.get(backup_key)
+            if value is not None and str(value) not in options.get(setting_key, set()):
+                errors.append(f"photos.{backup_key} has unsupported option")
+        limit = int(project.get("backup_import_photo_id_limit", 255))
+        for key in ("album_ids", "album_labels", "person_ids", "person_labels"):
+            if len(str(photos.get(key, ""))) > limit:
+                errors.append(f"photos.{key} exceeds {limit} characters")
+        for key in ("album_ids", "person_ids"):
+            value = str(photos.get(key, "")).strip()
+            if value and not UUID_LIST_RE.match(value):
+                errors.append(f"photos.{key} is not a UUID list")
+
+    firmware_updates = data.get("firmware_updates", {})
+    if isinstance(firmware_updates, dict):
+        for key in ("manifest_url", "beta_manifest_url"):
+            value = str(firmware_updates.get(key, "")).strip()
+            if value and not (value.startswith("http://") or value.startswith("https://")):
+                errors.append(f"firmware_updates.{key} is not an HTTP URL")
+    return errors
+
+
+def check_compatibility_fixtures(product: dict[str, Any], errors: list[str]) -> None:
+    fixtures = product["project"].get("compatibility_fixture_files", {})
+    if not isinstance(fixtures, dict) or not fixtures:
+        errors.append("project.compatibility_fixture_files must be a non-empty object")
+        return
+
+    accepted = fixtures.get("accepted", [])
+    if not isinstance(accepted, list) or not accepted:
+        errors.append("project.compatibility_fixture_files.accepted must be a non-empty list")
+    else:
+        for raw_path in accepted:
+            path = ROOT / str(raw_path)
+            data = load_json(path, errors)
+            if not data:
+                continue
+            fixture_errors = fixture_validation_errors(data, product)
+            if fixture_errors:
+                errors.append(f"{rel(path)} should be import-compatible: {', '.join(fixture_errors)}")
+
+    rejected_fields = fixtures.get("rejected_fields", [])
+    if not isinstance(rejected_fields, list) or not rejected_fields:
+        errors.append("project.compatibility_fixture_files.rejected_fields must be a non-empty list")
+    else:
+        web_text = WEB_APP.read_text()
+        for item in rejected_fields:
+            if not isinstance(item, dict):
+                errors.append("project.compatibility_fixture_files.rejected_fields entries must be objects")
+                continue
+            path = ROOT / str(item.get("path", ""))
+            data = load_json(path, errors)
+            if data and not fixture_validation_errors(data, product):
+                errors.append(f"{rel(path)} must contain at least one rejected import field")
+            messages = item.get("messages", [])
+            if not isinstance(messages, list) or not messages:
+                errors.append(f"{rel(path)} rejected fixture must list expected web UI messages")
+                continue
+            for message in [str(value) for value in messages]:
+                require_contains(web_text, message, rel(WEB_APP), errors)
+
+
+def main() -> int:
+    product = load_product()
+    errors: list[str] = []
+    check_generated_web_metadata(product, errors)
+    check_backup_endpoint_mapping(product, errors)
+    check_compatibility_fixtures(product, errors)
+
+    if errors:
+        for error in errors:
+            print(f"compatibility check failed: {error}", file=sys.stderr)
+        return 1
+    print("compatibility checks passed")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
