@@ -232,6 +232,8 @@ def check_setting_schema(setting: dict, errors: list[str]) -> None:
     elif domain == "text":
         if not isinstance(raw_default, str):
             errors.append(f"Text setting {key} default must be a string")
+        if not str(setting.get("docs_type", "")).strip() and not str(setting.get("docs_format", "")).strip():
+            errors.append(f"Text setting {key} must define docs_type or docs_format")
         if options or developer_options:
             errors.append(f"Text setting {key} must not define options")
 
