@@ -180,6 +180,9 @@ def web_product_settings() -> dict[str, dict[str, object]]:
             "default": setting.get("default", ""),
             "options": setting.get("options", []),
         }
+        for field in ("min", "max", "step"):
+            if field in setting:
+                result[key][field] = setting[field]
     return result
 
 

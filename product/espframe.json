@@ -112,6 +112,171 @@
       "options": ["Hourly", "Daily", "Weekly", "Monthly"],
       "firmware_files": ["common/addon/firmware_update.yaml"],
       "docs_files": ["docs/firmware-update.md"]
+    },
+    {
+      "key": "auto_update",
+      "entity": { "domain": "switch", "name": "Firmware: Auto Update" },
+      "default": true,
+      "docs_default": "On",
+      "firmware_files": ["common/addon/firmware_update.yaml"],
+      "docs_files": ["docs/firmware-update.md"]
+    },
+    {
+      "key": "beta_channel",
+      "entity": { "domain": "switch", "name": "Firmware: Beta Channel" },
+      "default": false,
+      "docs_default": "Off",
+      "firmware_files": ["common/addon/firmware_update.yaml"],
+      "docs_files": ["docs/firmware-update.md"]
+    },
+    {
+      "key": "date_filter_enabled",
+      "entity": { "domain": "switch", "name": "Photos: Date Filter" },
+      "default": false,
+      "docs_default": "Off",
+      "firmware_files": ["common/addon/immich_filter.yaml"],
+      "docs_files": ["docs/photo-sources.md"]
+    },
+    {
+      "key": "relative_amount",
+      "entity": { "domain": "number", "name": "Photos: Relative Amount" },
+      "default": 1,
+      "min": 1,
+      "max": 120,
+      "step": 1,
+      "firmware_files": ["common/addon/immich_filter.yaml"],
+      "docs_files": ["docs/photo-sources.md"]
+    },
+    {
+      "key": "schedule_enabled",
+      "entity": { "domain": "switch", "name": "Screen: Schedule Enabled" },
+      "default": false,
+      "docs_default": "Off",
+      "firmware_files": ["common/addon/backlight_schedule.yaml"],
+      "docs_files": ["docs/screen-settings.md"]
+    },
+    {
+      "key": "schedule_on_hour",
+      "entity": { "domain": "number", "name": "Screen: Schedule On Hour" },
+      "default": 6,
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "firmware_files": ["common/addon/backlight_schedule.yaml"],
+      "docs_files": ["docs/screen-settings.md"]
+    },
+    {
+      "key": "schedule_off_hour",
+      "entity": { "domain": "number", "name": "Screen: Schedule Off Hour" },
+      "default": 23,
+      "min": 0,
+      "max": 23,
+      "step": 1,
+      "firmware_files": ["common/addon/backlight_schedule.yaml"],
+      "docs_files": ["docs/screen-settings.md"]
+    },
+    {
+      "key": "schedule_wake_timeout",
+      "entity": { "domain": "number", "name": "Screen: Schedule Wake Timeout" },
+      "default": 60,
+      "docs_default": "60 seconds",
+      "min": 10,
+      "max": 3600,
+      "step": 10,
+      "firmware_files": ["common/addon/backlight_schedule.yaml"],
+      "docs_files": ["docs/screen-settings.md"]
+    },
+    {
+      "key": "brightness_day",
+      "entity": { "domain": "number", "name": "Screen: Daytime Brightness" },
+      "default": 100,
+      "docs_default": "100%",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "firmware_files": ["common/addon/backlight_schedule.yaml"],
+      "docs_files": ["docs/screen-settings.md"]
+    },
+    {
+      "key": "brightness_night",
+      "entity": { "domain": "number", "name": "Screen: Nighttime Brightness" },
+      "default": 75,
+      "docs_default": "75%",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "firmware_files": ["common/addon/backlight_schedule.yaml"],
+      "docs_files": ["docs/screen-settings.md"]
+    },
+    {
+      "key": "base_tone_enabled",
+      "entity": { "domain": "switch", "name": "Screen: Tone Adjustment" },
+      "default": false,
+      "docs_default": "Off",
+      "firmware_files": ["common/addon/warm_tones.yaml"],
+      "docs_files": ["docs/screen-tone.md"]
+    },
+    {
+      "key": "base_tone",
+      "entity": { "domain": "number", "name": "Screen: Display Tone" },
+      "default": 0,
+      "docs_default": "0%",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "firmware_files": ["common/addon/warm_tones.yaml"],
+      "docs_files": ["docs/screen-tone.md"]
+    },
+    {
+      "key": "warm_tones_enabled",
+      "entity": { "domain": "switch", "name": "Screen: Night Tone Adjustment" },
+      "default": false,
+      "docs_default": "Off",
+      "firmware_files": ["common/addon/warm_tones.yaml"],
+      "docs_files": ["docs/screen-tone.md"]
+    },
+    {
+      "key": "warm_tone_intensity",
+      "entity": { "domain": "number", "name": "Screen: Warm Tone Intensity" },
+      "default": 50,
+      "docs_default": "50%",
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "firmware_files": ["common/addon/warm_tones.yaml"],
+      "docs_files": ["docs/screen-tone.md"]
+    },
+    {
+      "key": "warm_tone_override",
+      "entity": { "domain": "switch", "name": "Screen: Warm Tone Override" },
+      "default": false,
+      "docs_default": "Off",
+      "firmware_files": ["common/addon/warm_tones.yaml"],
+      "docs_files": ["docs/screen-tone.md"]
+    },
+    {
+      "key": "portrait_pairing",
+      "entity": { "domain": "switch", "name": "Photos: Portrait Pairing" },
+      "default": true,
+      "docs_default": "On",
+      "firmware_files": ["common/addon/immich_slideshow.yaml"],
+      "docs_files": ["docs/photo-sources.md"]
+    },
+    {
+      "key": "photo_metadata_date_enabled",
+      "entity": { "domain": "switch", "name": "Device: Metadata Date" },
+      "default": true,
+      "docs_default": "On",
+      "firmware_files": ["common/addon/immich_slideshow.yaml"],
+      "docs_files": ["docs/photo-sources.md"]
+    },
+    {
+      "key": "photo_metadata_location_enabled",
+      "entity": { "domain": "switch", "name": "Device: Metadata Location" },
+      "default": true,
+      "docs_default": "On",
+      "firmware_files": ["common/addon/immich_slideshow.yaml"],
+      "docs_files": ["docs/photo-sources.md"]
     }
   ]
 }

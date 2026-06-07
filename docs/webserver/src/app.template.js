@@ -46,19 +46,19 @@
     update_available: false,
     beta_version: "",
     beta_available: false,
-    auto_update: true,
-    beta_channel: false,
+    auto_update: settingDefault("auto_update", true),
+    beta_channel: settingDefault("beta_channel", false),
     update_frequency: settingDefault("update_frequency", "Daily"),
     update_freq_options: settingOptions("update_frequency", ["Hourly", "Daily", "Weekly", "Monthly"]),
     firmware_manifest_url: "",
     firmware_beta_manifest_url: "",
-    schedule_enabled: false,
-    schedule_on_hour: 6,
-    schedule_off_hour: 23,
-    schedule_wake_timeout: 60,
+    schedule_enabled: settingDefault("schedule_enabled", false),
+    schedule_on_hour: settingDefault("schedule_on_hour", 6),
+    schedule_off_hour: settingDefault("schedule_off_hour", 23),
+    schedule_wake_timeout: settingDefault("schedule_wake_timeout", 60),
     brightness_current: 0,
-    brightness_day: 100,
-    brightness_night: 75,
+    brightness_day: settingDefault("brightness_day", 100),
+    brightness_night: settingDefault("brightness_night", 75),
     sunrise: "",
     sunset: "",
     photo_source: settingDefault("photo_source", "All Photos"),
@@ -67,30 +67,30 @@
     album_labels: "",
     person_ids: "",
     person_labels: "",
-    base_tone_enabled: false,
-    base_tone: 0,
-    warm_tones_enabled: false,
-    warm_tone_intensity: 50,
-    warm_tone_override: false,
-    date_filter_enabled: false,
+    base_tone_enabled: settingDefault("base_tone_enabled", false),
+    base_tone: settingDefault("base_tone", 0),
+    warm_tones_enabled: settingDefault("warm_tones_enabled", false),
+    warm_tone_intensity: settingDefault("warm_tone_intensity", 50),
+    warm_tone_override: settingDefault("warm_tone_override", false),
+    date_filter_enabled: settingDefault("date_filter_enabled", false),
     date_filter_mode: settingDefault("date_filter_mode", "Fixed Range"),
     date_filter_mode_options: settingOptions("date_filter_mode", ["Fixed Range", "Relative Range"]),
     date_from: "",
     date_to: "",
-    relative_amount: 1,
+    relative_amount: settingDefault("relative_amount", 1),
     relative_unit: settingDefault("relative_unit", "Years"),
     relative_unit_options: settingOptions("relative_unit", ["Months", "Years"]),
-    portrait_pairing: true,
+    portrait_pairing: settingDefault("portrait_pairing", true),
     photo_orientation: settingDefault("photo_orientation", "Any"),
     photo_orientation_options: settingOptions("photo_orientation", ["Any", "Portrait Only", "Landscape Only"]),
     display_mode: settingDefault("display_mode", "Fill"),
     display_mode_options: settingOptions("display_mode", ["Fill", "Fit"]),
-    photo_metadata_date_enabled: true,
+    photo_metadata_date_enabled: settingDefault("photo_metadata_date_enabled", true),
     photo_metadata_date_format: settingDefault("photo_metadata_date_format", "Date Taken"),
     photo_metadata_date_format_options: settingOptions("photo_metadata_date_format", ["Relative Date", "Date Taken"]),
     photo_metadata_date_taken_format: settingDefault("photo_metadata_date_taken_format", "1 January, 2026"),
     photo_metadata_date_taken_format_options: settingOptions("photo_metadata_date_taken_format", ["1 January, 2026", "January 1, 2026"]),
-    photo_metadata_location_enabled: true,
+    photo_metadata_location_enabled: settingDefault("photo_metadata_location_enabled", true),
     screen_rotation: settingDefault("screen_rotation", "0"),
     screen_rotation_options: settingOptions("screen_rotation", ["0", "180"]),
     developer_features_enabled: false,
@@ -304,17 +304,17 @@
     firmware: eid("text_sensor", "Firmware: Version"),
     update: eid("update", "Firmware: Update"),
     update_beta: eid("update", "Firmware: Update Beta"),
-    auto_update: eid("switch", "Firmware: Auto Update"),
-    beta_channel: eid("switch", "Firmware: Beta Channel"),
+    auto_update: settingEndpoint("auto_update", "switch", "Firmware: Auto Update"),
+    beta_channel: settingEndpoint("beta_channel", "switch", "Firmware: Beta Channel"),
     update_frequency: settingEndpoint("update_frequency", "select", "Firmware: Update Frequency"),
     firmware_manifest_url: eid("text", "Firmware: Manifest URL"),
     firmware_beta_manifest_url: eid("text", "Firmware: Beta Manifest URL"),
-    schedule_enabled: eid("switch", "Screen: Schedule Enabled"),
-    schedule_on_hour: eid("number", "Screen: Schedule On Hour"),
-    schedule_off_hour: eid("number", "Screen: Schedule Off Hour"),
-    schedule_wake_timeout: eid("number", "Screen: Schedule Wake Timeout"),
-    brightness_day: eid("number", "Screen: Daytime Brightness"),
-    brightness_night: eid("number", "Screen: Nighttime Brightness"),
+    schedule_enabled: settingEndpoint("schedule_enabled", "switch", "Screen: Schedule Enabled"),
+    schedule_on_hour: settingEndpoint("schedule_on_hour", "number", "Screen: Schedule On Hour"),
+    schedule_off_hour: settingEndpoint("schedule_off_hour", "number", "Screen: Schedule Off Hour"),
+    schedule_wake_timeout: settingEndpoint("schedule_wake_timeout", "number", "Screen: Schedule Wake Timeout"),
+    brightness_day: settingEndpoint("brightness_day", "number", "Screen: Daytime Brightness"),
+    brightness_night: settingEndpoint("brightness_night", "number", "Screen: Nighttime Brightness"),
     sunrise: eid("text_sensor", "Screen: Sunrise"),
     sunset: eid("text_sensor", "Screen: Sunset"),
     photo_source: settingEndpoint("photo_source", "select", "Photos: Source"),
@@ -322,24 +322,24 @@
     album_labels: eid("text", "Photos: Album Labels"),
     person_ids: eid("text", "Photos: Person IDs"),
     person_labels: eid("text", "Photos: Person Labels"),
-    date_filter_enabled: eid("switch", "Photos: Date Filter"),
+    date_filter_enabled: settingEndpoint("date_filter_enabled", "switch", "Photos: Date Filter"),
     date_filter_mode: settingEndpoint("date_filter_mode", "select", "Photos: Date Filter Mode"),
     date_from: eid("text", "Photos: Date From"),
     date_to: eid("text", "Photos: Date To"),
-    relative_amount: eid("number", "Photos: Relative Amount"),
+    relative_amount: settingEndpoint("relative_amount", "number", "Photos: Relative Amount"),
     relative_unit: settingEndpoint("relative_unit", "select", "Photos: Relative Unit"),
-    base_tone_enabled: eid("switch", "Screen: Tone Adjustment"),
-    base_tone: eid("number", "Screen: Display Tone"),
-    warm_tones_enabled: eid("switch", "Screen: Night Tone Adjustment"),
-    warm_tone_intensity: eid("number", "Screen: Warm Tone Intensity"),
-    warm_tone_override: eid("switch", "Screen: Warm Tone Override"),
-    portrait_pairing: eid("switch", "Photos: Portrait Pairing"),
+    base_tone_enabled: settingEndpoint("base_tone_enabled", "switch", "Screen: Tone Adjustment"),
+    base_tone: settingEndpoint("base_tone", "number", "Screen: Display Tone"),
+    warm_tones_enabled: settingEndpoint("warm_tones_enabled", "switch", "Screen: Night Tone Adjustment"),
+    warm_tone_intensity: settingEndpoint("warm_tone_intensity", "number", "Screen: Warm Tone Intensity"),
+    warm_tone_override: settingEndpoint("warm_tone_override", "switch", "Screen: Warm Tone Override"),
+    portrait_pairing: settingEndpoint("portrait_pairing", "switch", "Photos: Portrait Pairing"),
     photo_orientation: settingEndpoint("photo_orientation", "select", "Photos: Orientation"),
     display_mode: settingEndpoint("display_mode", "select", "Photos: Display Mode"),
-    photo_metadata_date_enabled: eid("switch", "Device: Metadata Date"),
+    photo_metadata_date_enabled: settingEndpoint("photo_metadata_date_enabled", "switch", "Device: Metadata Date"),
     photo_metadata_date_format: settingEndpoint("photo_metadata_date_format", "select", "Device: Metadata Date Format"),
     photo_metadata_date_taken_format: settingEndpoint("photo_metadata_date_taken_format", "select", "Device: Metadata Date Taken Format"),
-    photo_metadata_location_enabled: eid("switch", "Device: Metadata Location"),
+    photo_metadata_location_enabled: settingEndpoint("photo_metadata_location_enabled", "switch", "Device: Metadata Location"),
     screen_rotation: settingEndpoint("screen_rotation", "select", "Screen: Rotation"),
     developer_features_enabled: eid("switch", "Developer: Features"),
   };
@@ -692,22 +692,58 @@
     { key: "conn_timeout", optionsKey: "conn_timeout_options", default: settingDefault("conn_timeout", "10 minutes") });
   mapSettingEntity("update_frequency", "select", "Firmware: Update Frequency",
     { key: "update_frequency", optionsKey: "update_freq_options", default: settingDefault("update_frequency", "Daily") });
+  mapSettingEntity("auto_update", "switch", "Firmware: Auto Update",
+    { key: "auto_update", boolFromState: true });
+  mapSettingEntity("beta_channel", "switch", "Firmware: Beta Channel",
+    { key: "beta_channel", boolFromState: true });
   mapSettingEntity("photo_source", "select", "Photos: Source",
     { key: "photo_source", optionsKey: "photo_source_options", default: settingDefault("photo_source", "All Photos") });
+  mapSettingEntity("date_filter_enabled", "switch", "Photos: Date Filter",
+    { key: "date_filter_enabled", boolFromState: true });
   mapSettingEntity("date_filter_mode", "select", "Photos: Date Filter Mode",
     { key: "date_filter_mode", optionsKey: "date_filter_mode_options", default: settingDefault("date_filter_mode", "Fixed Range") });
+  mapSettingEntity("relative_amount", "number", "Photos: Relative Amount",
+    { key: "relative_amount", default: settingDefault("relative_amount", 1), number: true });
   mapSettingEntity("relative_unit", "select", "Photos: Relative Unit",
     { key: "relative_unit", optionsKey: "relative_unit_options", default: settingDefault("relative_unit", "Years") });
+  mapSettingEntity("schedule_enabled", "switch", "Screen: Schedule Enabled",
+    { key: "schedule_enabled", boolFromState: true });
+  mapSettingEntity("schedule_on_hour", "number", "Screen: Schedule On Hour",
+    { key: "schedule_on_hour", default: settingDefault("schedule_on_hour", 6), number: true });
+  mapSettingEntity("schedule_off_hour", "number", "Screen: Schedule Off Hour",
+    { key: "schedule_off_hour", default: settingDefault("schedule_off_hour", 23), number: true });
+  mapSettingEntity("schedule_wake_timeout", "number", "Screen: Schedule Wake Timeout",
+    { key: "schedule_wake_timeout", default: settingDefault("schedule_wake_timeout", 60), number: true });
+  mapSettingEntity("brightness_day", "number", "Screen: Daytime Brightness",
+    { key: "brightness_day", default: settingDefault("brightness_day", 100), number: true });
+  mapSettingEntity("brightness_night", "number", "Screen: Nighttime Brightness",
+    { key: "brightness_night", default: settingDefault("brightness_night", 75), number: true });
+  mapSettingEntity("base_tone_enabled", "switch", "Screen: Tone Adjustment",
+    { key: "base_tone_enabled", boolFromState: true });
+  mapSettingEntity("base_tone", "number", "Screen: Display Tone",
+    { key: "base_tone", default: settingDefault("base_tone", 0), number: true });
+  mapSettingEntity("warm_tones_enabled", "switch", "Screen: Night Tone Adjustment",
+    { key: "warm_tones_enabled", boolFromState: true });
+  mapSettingEntity("warm_tone_intensity", "number", "Screen: Warm Tone Intensity",
+    { key: "warm_tone_intensity", default: settingDefault("warm_tone_intensity", 50), number: true });
+  mapSettingEntity("warm_tone_override", "switch", "Screen: Warm Tone Override",
+    { key: "warm_tone_override", boolFromState: true });
   mapSettingEntity("photo_orientation", "select", "Photos: Orientation",
     { key: "photo_orientation", optionsKey: "photo_orientation_options", default: settingDefault("photo_orientation", "Any") });
   mapSettingEntity("screen_rotation", "select", "Screen: Rotation",
     { key: "screen_rotation", optionsKey: "screen_rotation_options", default: settingDefault("screen_rotation", "0") });
+  mapSettingEntity("portrait_pairing", "switch", "Photos: Portrait Pairing",
+    { key: "portrait_pairing", boolFromState: true });
   mapSettingEntity("display_mode", "select", "Photos: Display Mode",
     { key: "display_mode", optionsKey: "display_mode_options", default: settingDefault("display_mode", "Fill") });
+  mapSettingEntity("photo_metadata_date_enabled", "switch", "Device: Metadata Date",
+    { key: "photo_metadata_date_enabled", boolFromState: true });
   mapSettingEntity("photo_metadata_date_format", "select", "Device: Metadata Date Format",
     { key: "photo_metadata_date_format", optionsKey: "photo_metadata_date_format_options", default: settingDefault("photo_metadata_date_format", "Date Taken") });
   mapSettingEntity("photo_metadata_date_taken_format", "select", "Device: Metadata Date Taken Format",
     { key: "photo_metadata_date_taken_format", optionsKey: "photo_metadata_date_taken_format_options", default: settingDefault("photo_metadata_date_taken_format", "1 January, 2026") });
+  mapSettingEntity("photo_metadata_location_enabled", "switch", "Device: Metadata Location",
+    { key: "photo_metadata_location_enabled", boolFromState: true });
 
   function applyEntityToState(d) {
     if (!d || !d.id) return;

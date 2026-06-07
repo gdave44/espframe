@@ -8,6 +8,7 @@ we start generating larger parts of the project from the product schema.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -94,7 +95,10 @@ def check_setting(setting: dict, web_text: str, errors: list[str]) -> None:
     entity = setting.get("entity") or {}
     domain = str(entity.get("domain", "")).strip()
     name = str(entity.get("name", "")).strip()
-    default = str(setting.get("default", ""))
+    raw_default = setting.get("default", "")
+    default = str(raw_default)
+    web_default = json.dumps(raw_default, separators=(",", ":"))
+    docs_default = str(setting.get("docs_default", default))
     options = [str(option) for option in setting.get("options", [])]
 
     if not key or not domain or not name:
@@ -104,7 +108,7 @@ def check_setting(setting: dict, web_text: str, errors: list[str]) -> None:
     entity_id = f"{domain}/{name}"
     require_contains(web_text, f'"{entity_id}"', f"web UI mapping for {key}", errors)
     require_contains(web_text, key, f"web UI state key for {key}", errors)
-    require_contains(web_text, default, f"web UI default for {key}", errors)
+    require_contains(web_text, web_default, f"web UI default for {key}", errors)
     for option in options:
         require_contains(web_text, option, f"web UI option for {key}", errors)
 
@@ -116,13 +120,23 @@ def check_setting(setting: dict, web_text: str, errors: list[str]) -> None:
         require_contains(text, f'name: "{name}"', f"{filename} entity for {key}", errors)
         for option in options:
             require_contains(text, f'"{option}"', f"{filename} option for {key}", errors)
+        if entity.get("domain") == "number":
+            for product_field, firmware_field in (
+                ("default", "initial_value"),
+                ("min", "min_value"),
+                ("max", "max_value"),
+                ("step", "step"),
+            ):
+                if product_field in setting:
+                    value = str(setting[product_field])
+                    require_contains(text, f"{firmware_field}: {value}", f"{filename} {firmware_field} for {key}", errors)
 
     docs_files = setting.get("docs_files", [])
     if not docs_files:
         errors.append(f"Setting {key} has no docs_files")
     for filename in docs_files:
         text = read(ROOT / str(filename), errors)
-        require_contains(text, default, f"{filename} default for {key}", errors)
+        require_contains(text, docs_default, f"{filename} default for {key}", errors)
 
 
 def check_settings(product: dict, errors: list[str]) -> None:
