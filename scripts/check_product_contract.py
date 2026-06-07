@@ -2184,6 +2184,12 @@ def check_clock_time_metadata(product: dict, errors: list[str]) -> None:
         key = f"ntp_server_{index}"
         require_contains(time_yaml, f'  {key}: "{server}"', rel(TIME_YAML), errors)
         require_contains(time_yaml, f'initial_value: "${{{key}}}"', rel(TIME_YAML), errors)
+        require_contains(
+            web_template,
+            f'{{ key: "{key}", placeholder: "{server}", label: "NTP Server {index}" }}',
+            rel(WEB_TEMPLATE),
+            errors,
+        )
     if clock_default_show is True:
         require_contains(time_yaml, "restore_mode: RESTORE_DEFAULT_ON", rel(TIME_YAML), errors)
     elif clock_default_show is False:
