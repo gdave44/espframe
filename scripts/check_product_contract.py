@@ -305,6 +305,44 @@ def check_devices(product: dict, errors: list[str]) -> None:
                     errors.append(f"Device {slug} package_substitutions keys must be non-empty strings")
                 if not isinstance(value, str) or not value.strip():
                     errors.append(f"Device {slug} package_substitutions.{name} must be a non-empty string")
+        font_assets = device.get("font_assets", [])
+        if not isinstance(font_assets, list) or not font_assets:
+            errors.append(f"Device {slug} font_assets must be a non-empty list")
+        else:
+            for font in font_assets:
+                if not isinstance(font, dict):
+                    errors.append(f"Device {slug} font_assets entries must be objects")
+                    continue
+                for field in ("id", "file"):
+                    if not str(font.get(field, "")).strip():
+                        errors.append(f"Device {slug} font_assets entry is missing {field}")
+                for field in ("size", "bpp"):
+                    if not isinstance(font.get(field), int) or isinstance(font.get(field), bool) or font.get(field) < 1:
+                        errors.append(f"Device {slug} font_assets.{font.get('id', '<unknown>')}.{field} must be a positive integer")
+        location_font_extra_files = device.get("location_font_extra_files", [])
+        if not isinstance(location_font_extra_files, list) or not location_font_extra_files:
+            errors.append(f"Device {slug} location_font_extra_files must be a non-empty list")
+        elif any(not isinstance(font_file, str) or not font_file.strip() for font_file in location_font_extra_files):
+            errors.append(f"Device {slug} location_font_extra_files must only contain non-empty strings")
+        icon_font = device.get("icon_font", {})
+        if not isinstance(icon_font, dict):
+            errors.append(f"Device {slug} icon_font must be an object")
+        else:
+            for field in ("id", "file"):
+                if not str(icon_font.get(field, "")).strip():
+                    errors.append(f"Device {slug} icon_font.{field} is required")
+            for field in ("size", "bpp"):
+                if not isinstance(icon_font.get(field), int) or isinstance(icon_font.get(field), bool) or icon_font.get(field) < 1:
+                    errors.append(f"Device {slug} icon_font.{field} must be a positive integer")
+        icon_substitutions = device.get("icon_substitutions", {})
+        if not isinstance(icon_substitutions, dict) or not icon_substitutions:
+            errors.append(f"Device {slug} icon_substitutions must be a non-empty object")
+        else:
+            for name, glyph in icon_substitutions.items():
+                if not isinstance(name, str) or not name.strip():
+                    errors.append(f"Device {slug} icon_substitutions keys must be non-empty strings")
+                if not isinstance(glyph, str) or not glyph.strip():
+                    errors.append(f"Device {slug} icon_substitutions.{name} must be a non-empty string")
 
         for field in ("panel_url", "stand_url"):
             url = str(device.get(field, "")).strip()
@@ -317,6 +355,12 @@ def check_devices(product: dict, errors: list[str]) -> None:
             continue
         device_yaml = read(ROOT / device_yaml_path, errors)
         package_yaml = read(ROOT / package_yaml_path, errors)
+        package_dir = (ROOT / package_yaml_path).parent
+        package_include_paths = {
+            str(include.get("alias", "")).strip(): str(include.get("path", "")).strip()
+            for include in package_includes
+            if isinstance(include, dict)
+        } if isinstance(package_includes, list) else {}
 
         for field, needle in (
             ("esp32_variant", f'variant: {device.get("esp32_variant", "")}'),
@@ -392,7 +436,6 @@ def check_devices(product: dict, errors: list[str]) -> None:
         if i2c_frequency:
             require_contains(device_yaml, f"frequency: {i2c_frequency}", rel(ROOT / device_yaml_path), errors)
         if isinstance(package_includes, list):
-            package_dir = (ROOT / package_yaml_path).parent
             for include in package_includes:
                 if not isinstance(include, dict):
                     continue
@@ -409,6 +452,66 @@ def check_devices(product: dict, errors: list[str]) -> None:
             for name, value in package_substitutions.items():
                 if isinstance(name, str) and isinstance(value, str) and name.strip() and value.strip():
                     require_contains(package_yaml, f'{name}: "{value}"', rel(ROOT / package_yaml_path), errors)
+        fonts_include = package_include_paths.get("fonts", "")
+        if fonts_include:
+            fonts_label = rel((package_dir / fonts_include).resolve())
+            fonts_yaml = read((package_dir / fonts_include).resolve(), errors)
+            if isinstance(font_assets, list):
+                for font in font_assets:
+                    if not isinstance(font, dict):
+                        continue
+                    font_id = str(font.get("id", "")).strip()
+                    font_file = str(font.get("file", "")).strip()
+                    font_size = font.get("size")
+                    font_bpp = font.get("bpp")
+                    if font_file:
+                        require_contains(fonts_yaml, f'file: "{font_file}"', fonts_label, errors)
+                    if font_id:
+                        require_contains(fonts_yaml, f"id: {font_id}", fonts_label, errors)
+                    if isinstance(font_size, int):
+                        require_contains(fonts_yaml, f"size: {font_size}", fonts_label, errors)
+                    if isinstance(font_bpp, int):
+                        require_contains(fonts_yaml, f"bpp: {font_bpp}", fonts_label, errors)
+            if isinstance(location_font_extra_files, list):
+                for font_file in location_font_extra_files:
+                    if isinstance(font_file, str) and font_file.strip():
+                        require_contains(fonts_yaml, f'file: "{font_file.strip()}"', fonts_label, errors)
+            for needle in (
+                "latin_extended_glyphs:",
+                "greek_cyrillic_vietnamese_glyphs:",
+                "arabic_location_glyphs:",
+                "hebrew_location_glyphs:",
+                "glyphsets:",
+                "GF_Latin_Core",
+                "GF_Latin_Beyond",
+                "GF_Latin_Vietnamese",
+                "GF_Greek_Core",
+                "GF_Cyrillic_Plus",
+                "extras:",
+            ):
+                require_contains(fonts_yaml, needle, fonts_label, errors)
+        icons_include = package_include_paths.get("icons", "")
+        if icons_include:
+            icons_label = rel((package_dir / icons_include).resolve())
+            icons_yaml = read((package_dir / icons_include).resolve(), errors)
+            if isinstance(icon_font, dict):
+                icon_font_id = str(icon_font.get("id", "")).strip()
+                icon_font_file = str(icon_font.get("file", "")).strip()
+                icon_font_size = icon_font.get("size")
+                icon_font_bpp = icon_font.get("bpp")
+                if icon_font_file:
+                    require_contains(icons_yaml, icon_font_file, icons_label, errors)
+                if icon_font_id:
+                    require_contains(icons_yaml, f"id: {icon_font_id}", icons_label, errors)
+                if isinstance(icon_font_size, int):
+                    require_contains(icons_yaml, f"size: {icon_font_size}", icons_label, errors)
+                if isinstance(icon_font_bpp, int):
+                    require_contains(icons_yaml, f"bpp: {icon_font_bpp}", icons_label, errors)
+            if isinstance(icon_substitutions, dict):
+                for name, glyph in icon_substitutions.items():
+                    if isinstance(name, str) and isinstance(glyph, str) and name.strip() and glyph.strip():
+                        require_contains(icons_yaml, f'{name}: "{glyph}"', icons_label, errors)
+                        require_contains(icons_yaml, f'- "{glyph}"', icons_label, errors)
         for needle in (
             "esp_ldo:",
             "platform: ledc",

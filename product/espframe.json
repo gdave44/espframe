@@ -279,6 +279,26 @@
         "firmware_manifest_url": "https://jtenniswood.github.io/espframe/firmware/manifest.json",
         "firmware_beta_manifest_url": "https://jtenniswood.github.io/espframe/firmware/beta/manifest.json"
       },
+      "font_assets": [
+        { "id": "noto_325_150_font", "file": "gfonts://Noto Sans@325", "size": 150, "bpp": 4 },
+        { "id": "noto_400_46_font", "file": "gfonts://Noto Sans@400", "size": 46, "bpp": 4 },
+        { "id": "noto_400_30_font", "file": "gfonts://Noto Sans@400", "size": 30, "bpp": 4 },
+        { "id": "noto_400_28_font", "file": "gfonts://Noto Sans@400", "size": 28, "bpp": 4 },
+        { "id": "noto_400_32_font", "file": "gfonts://Noto Sans@400", "size": 32, "bpp": 4 },
+        { "id": "noto_location_400_36_font", "file": "gfonts://Noto Sans@400", "size": 36, "bpp": 4 }
+      ],
+      "location_font_extra_files": ["gfonts://Noto Sans Arabic@400", "gfonts://Noto Sans Hebrew@400"],
+      "icon_font": {
+        "id": "icon_font_setup",
+        "file": "https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf",
+        "size": 64,
+        "bpp": 4
+      },
+      "icon_substitutions": {
+        "icon_wifi": "\\U000F05A9",
+        "icon_cog": "\\U000F0493",
+        "icon_cloud_off": "\\U000F0164"
+      },
       "panel_url": "https://s.click.aliexpress.com/e/_c4LLo3rH",
       "stand_url": "https://makerworld.com/en/models/2490049-guition-p4-10inch-screen-stand#profileId-2736046",
       "build_yaml": "builds/guition-esp32-p4-jc8012p4a1.factory.yaml",
