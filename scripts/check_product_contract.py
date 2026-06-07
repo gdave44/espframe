@@ -394,6 +394,11 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         "screen_rotation_feature_source",
         "screen_rotation_behavior",
         "screen_rotation_developer_behavior",
+        "developer_features_query_value",
+        "developer_features_label",
+        "developer_features_entity",
+        "developer_features_guard",
+        "developer_features_persistence",
     ):
         if not str(project.get(field, "")).strip():
             errors.append(f"project.{field} is required")
@@ -403,6 +408,11 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"project.{field} must be a non-empty list")
         elif any(not isinstance(value, str) or not value.strip() for value in values):
             errors.append(f"project.{field} must only contain non-empty strings")
+    developer_query_params = project.get("developer_features_query_params", [])
+    if not isinstance(developer_query_params, list) or not developer_query_params:
+        errors.append("project.developer_features_query_params must be a non-empty list")
+    elif any(not isinstance(value, str) or not value.strip() for value in developer_query_params):
+        errors.append("project.developer_features_query_params must only contain non-empty strings")
     screen_rotation_mapping = project.get("screen_rotation_native_mapping", {})
     if not isinstance(screen_rotation_mapping, dict) or not screen_rotation_mapping:
         errors.append("project.screen_rotation_native_mapping must be a non-empty object")
@@ -1083,6 +1093,59 @@ def check_screen_rotation_metadata(product: dict, errors: list[str]) -> None:
         require_contains(web_template, needle, rel(WEB_TEMPLATE), errors)
     for needle in ("Rotation", "0 degrees"):
         require_contains(backup_docs + screen_docs, needle, "screen rotation docs", errors)
+
+
+def check_developer_features_metadata(product: dict, errors: list[str]) -> None:
+    project = product["project"]
+    query_params = [
+        str(value).strip() for value in project.get("developer_features_query_params", []) if str(value).strip()
+    ]
+    query_value = str(project.get("developer_features_query_value", "")).strip()
+    label = str(project.get("developer_features_label", "")).strip()
+    entity = str(project.get("developer_features_entity", "")).strip()
+    guard = str(project.get("developer_features_guard", "")).strip()
+    persistence = str(project.get("developer_features_persistence", "")).strip()
+
+    readme = read(ROOT / "README.md", errors)
+    developer_yaml = read(ROOT / "common" / "addon" / "developer_features.yaml", errors)
+    web_template = read(WEB_TEMPLATE, errors)
+    web_text = read(WEB_APP, errors)
+
+    if query_value:
+        require_contains(readme, f"?developer={query_value}", "README.md", errors)
+        for text, label_name in ((web_template, rel(WEB_TEMPLATE)), (web_text, rel(WEB_APP))):
+            require_contains(text, f'=== "{query_value}"', label_name, errors)
+    for param in query_params:
+        for text, label_name in ((web_template, rel(WEB_TEMPLATE)), (web_text, rel(WEB_APP))):
+            require_contains(text, f'params.get("{param}")', label_name, errors)
+    if label:
+        require_contains(web_template, label, rel(WEB_TEMPLATE), errors)
+        require_contains(web_text, label, rel(WEB_APP), errors)
+    if entity:
+        require_contains(developer_yaml, f'name: "{entity}"', "common/addon/developer_features.yaml", errors)
+        require_contains(web_text, f'"entity":"switch/{entity}"', rel(WEB_APP), errors)
+    if guard:
+        require_contains(readme, guard, "README.md", errors)
+    if persistence:
+        require_contains(readme, persistence, "README.md", errors)
+    for needle in (
+        "hidden developer setting",
+        "must stay off",
+        "RESTORE_DEFAULT_OFF",
+        "initial_value: 'false'",
+        "internal: true",
+        "developer_features_saved",
+        "developerPanelEnabledByUrl",
+        "S.developer_features_enabled",
+        "post(endpoints.developer_features_enabled",
+    ):
+        if needle in {"hidden developer setting", "must stay off"}:
+            require_contains(readme, needle, "README.md", errors)
+        elif needle in {"RESTORE_DEFAULT_OFF", "initial_value: 'false'", "internal: true", "developer_features_saved"}:
+            require_contains(developer_yaml, needle, "common/addon/developer_features.yaml", errors)
+        else:
+            require_contains(web_template, needle, rel(WEB_TEMPLATE), errors)
+            require_contains(web_text, needle, rel(WEB_APP), errors)
 
 
 def check_screen_tone_metadata(product: dict, errors: list[str]) -> None:
@@ -2546,6 +2609,7 @@ def main() -> int:
     check_touch_controls_metadata(product, errors)
     check_screen_schedule_metadata(product, errors)
     check_screen_rotation_metadata(product, errors)
+    check_developer_features_metadata(product, errors)
     check_screen_tone_metadata(product, errors)
     check_clock_time_metadata(product, errors)
     check_photo_source_metadata(product, errors)
