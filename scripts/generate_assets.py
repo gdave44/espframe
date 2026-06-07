@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 
 from product_config import (
+    DOCS_SETTINGS_TABLE_COLUMNS,
     DOCS_SETTINGS_TABLES,
     settings,
     web_entity_aliases_metadata,
@@ -232,6 +233,8 @@ def docs_setting_format(setting: dict[str, object]) -> str:
 
 
 def render_docs_cell(column: str, setting: dict[str, object]) -> str:
+    if column not in DOCS_SETTINGS_TABLE_COLUMNS:
+        raise RuntimeError(f"Unsupported generated docs table column: {column}")
     if column in ("Setting", "Control"):
         return f"**{docs_setting_label(setting)}**"
     if column == "Default":
@@ -242,7 +245,7 @@ def render_docs_cell(column: str, setting: dict[str, object]) -> str:
         return docs_setting_type(setting)
     if column == "Format":
         return docs_setting_format(setting)
-    raise RuntimeError(f"Unsupported generated docs table column: {column}")
+    raise RuntimeError(f"Unhandled generated docs table column: {column}")
 
 
 def render_settings_table(

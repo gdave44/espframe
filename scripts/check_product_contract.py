@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 from product_config import (
+    DOCS_SETTINGS_TABLE_COLUMNS,
     DOCS_SETTINGS_TABLES,
     WEB_ENTITY_ALIASES,
     WEB_STATIC_ENTITIES,
@@ -29,6 +30,7 @@ ROOT = Path(__file__).resolve().parent.parent
 WEB_TEMPLATE = ROOT / "docs" / "webserver" / "src" / "app.template.js"
 WEB_APP = ROOT / "docs" / "public" / "webserver" / "app.js"
 SETTING_DOMAINS = {"number", "select", "switch", "text"}
+DOCS_TABLE_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 def rel(path: Path) -> str:
@@ -323,6 +325,75 @@ def check_docs_table_membership(product: dict, errors: list[str]) -> None:
                 errors.append(f"{key} declares {docs_file} but is not included in a generated settings table")
 
 
+def check_docs_table_metadata(product: dict, errors: list[str]) -> None:
+    settings_by_key = {str(setting.get("key", "")).strip() for setting in product["settings"]}
+    seen_tables: set[tuple[str, str]] = set()
+    all_table_refs: set[tuple[str, str]] = set()
+
+    for path, table_blocks in DOCS_SETTINGS_TABLES.items():
+        if not isinstance(path, Path):
+            errors.append(f"Generated docs table path {path!r} must be a Path")
+            relative_path = str(path)
+        else:
+            try:
+                relative_path = rel(path)
+            except ValueError:
+                relative_path = str(path)
+                errors.append(f"Generated docs table path {relative_path} must be inside the repository")
+            else:
+                if path.suffix != ".md" or not relative_path.startswith("docs/"):
+                    errors.append(f"Generated docs table path {relative_path} must be a docs markdown file")
+                read(path, errors)
+
+        if not isinstance(table_blocks, dict) or not table_blocks:
+            errors.append(f"{relative_path} must define at least one generated settings table")
+            continue
+
+        for block_id, table in table_blocks.items():
+            if not isinstance(block_id, str) or not DOCS_TABLE_ID_RE.match(block_id):
+                errors.append(f"{relative_path} has invalid settings table id {block_id!r}")
+                continue
+            table_key = (relative_path, block_id)
+            if table_key in seen_tables:
+                errors.append(f"{relative_path} defines duplicate settings table {block_id}")
+            seen_tables.add(table_key)
+
+            if not isinstance(table, dict):
+                errors.append(f"{relative_path} settings table {block_id} metadata must be an object")
+                continue
+            columns = table.get("columns", ["Setting", "Default", "Description"])
+            if not isinstance(columns, list) or not columns:
+                errors.append(f"{relative_path} settings table {block_id} columns must be a non-empty list")
+            else:
+                seen_columns: set[str] = set()
+                for column in columns:
+                    if not isinstance(column, str) or column not in DOCS_SETTINGS_TABLE_COLUMNS:
+                        errors.append(f"{relative_path} settings table {block_id} has unsupported column {column!r}")
+                    elif column in seen_columns:
+                        errors.append(f"{relative_path} settings table {block_id} includes column {column} more than once")
+                    seen_columns.add(str(column))
+
+            setting_keys = table.get("settings")
+            if not isinstance(setting_keys, list) or not setting_keys:
+                errors.append(f"{relative_path} settings table {block_id} settings must be a non-empty list")
+                continue
+            seen_setting_keys: set[str] = set()
+            for raw_key in setting_keys:
+                key = str(raw_key).strip()
+                if not key:
+                    errors.append(f"{relative_path} settings table {block_id} has a blank setting key")
+                    continue
+                if key in seen_setting_keys:
+                    errors.append(f"{relative_path} settings table {block_id} includes {key} more than once")
+                seen_setting_keys.add(key)
+                if key not in settings_by_key:
+                    errors.append(f"{relative_path} settings table {block_id} references unknown setting {key}")
+                table_ref = (relative_path, key)
+                if table_ref in all_table_refs:
+                    errors.append(f"{relative_path} includes {key} in more than one generated settings table")
+                all_table_refs.add(table_ref)
+
+
 def check_docs_table_markers(errors: list[str]) -> None:
     marker_re = re.compile(r"<!-- ESPFRAME:SETTINGS_TABLE ([A-Za-z0-9_-]+) (START|END) -->")
     expected = {
@@ -430,6 +501,7 @@ def check_settings(product: dict, errors: list[str]) -> None:
     web_text = read(WEB_APP, errors)
     check_web_entity_metadata(product, errors)
     check_generated_web_metadata(product, web_text, errors)
+    check_docs_table_metadata(product, errors)
     check_docs_table_membership(product, errors)
     check_docs_table_markers(errors)
     require_contains(web_template, "__ESPFRAME_PRODUCT_SETTINGS__", rel(WEB_TEMPLATE), errors)

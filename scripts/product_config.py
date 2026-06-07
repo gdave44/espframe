@@ -96,6 +96,7 @@ DOCS_SETTINGS_TABLES = {
         },
     },
 }
+DOCS_SETTINGS_TABLE_COLUMNS = {"Control", "Default", "Description", "Format", "Setting", "Type"}
 
 
 def load_product(path: Path = PRODUCT_PATH) -> dict[str, Any]:
