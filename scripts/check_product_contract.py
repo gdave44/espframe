@@ -110,6 +110,21 @@ def valid_entity_string(value: object) -> bool:
     return bool(domain.strip() and name.strip())
 
 
+def check_web_entity_default_type(metadata: dict, domain: str, label: str, errors: list[str]) -> None:
+    if "default" not in metadata:
+        return
+    value = metadata.get("default")
+    if domain == "switch":
+        if not isinstance(value, bool):
+            errors.append(f"{label} switch default must be true or false")
+    elif domain == "number":
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            errors.append(f"{label} number default must be numeric")
+    elif domain in {"select", "text", "text_sensor"}:
+        if not isinstance(value, str):
+            errors.append(f"{label} {domain} default must be a string")
+
+
 def firmware_entity_block(text: str, name: str, filename: str, errors: list[str]) -> str:
     needle = f'name: "{name}"'
     lines = text.splitlines()
@@ -4048,7 +4063,9 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"Duplicate static web entity: {entity}")
         else:
             static_entities_seen.add(str(entity))
-            state_domains[str(key)] = str(entity).split("/", 1)[0]
+            domain = str(entity).split("/", 1)[0]
+            state_domains[str(key)] = domain
+            check_web_entity_default_type(metadata, domain, f"Static web entity {key}", errors)
         if entity in product_entities:
             errors.append(f"Static web entity {key} duplicates product entity {entity}")
         for field in ("fetch", "boolFromState", "number"):
@@ -4088,6 +4105,7 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
             else:
                 alias_domain = str(entity).split("/", 1)[0]
                 expected_domain = state_domains.get(key)
+                check_web_entity_default_type(alias, alias_domain, f"Web entity alias {key}", errors)
                 if expected_domain and alias_domain != expected_domain:
                     errors.append(
                         f"Web entity alias {key} domain {alias_domain!r} must match canonical domain {expected_domain!r}"
