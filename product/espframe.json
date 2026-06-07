@@ -1,6 +1,10 @@
 {
   "project": {
     "name": "Espframe for Immich",
+    "site_description": "Standalone Immich-powered digital photo frame on ESP32-P4",
+    "ai_description": "Standalone digital photo frame firmware that displays a self-hosted Immich photo library on an ESP32-P4 10\" touchscreen. No hub, cloud, or extra software required. Built with ESPHome.",
+    "social_image": "espframe.png",
+    "favicon": "favicon.svg",
     "npm_package_name": "immich-frame",
     "license_id": "PolyForm-Noncommercial-1.0.0",
     "license_name": "PolyForm Noncommercial License 1.0.0",

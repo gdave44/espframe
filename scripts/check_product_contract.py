@@ -237,6 +237,10 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
     project = product["project"]
     for field in (
         "name",
+        "site_description",
+        "ai_description",
+        "social_image",
+        "favicon",
         "npm_package_name",
         "license_id",
         "license_name",
@@ -275,6 +279,10 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
     owner_url = str(project.get("owner_url", "")).strip()
     if owner_url and not owner_url.startswith("https://"):
         errors.append("project.owner_url must be an https URL")
+    for field in ("social_image", "favicon"):
+        value = str(project.get(field, "")).strip()
+        if value and (value.startswith("/") or ".." in Path(value).parts):
+            errors.append(f"project.{field} must be a relative public asset path")
 
     firmware_update = read(ROOT / "common" / "addon" / "firmware_update.yaml", errors)
     if package_name:
@@ -470,6 +478,10 @@ def check_docs_site_config(product: dict, errors: list[str]) -> None:
     config = read(ROOT / "docs" / ".vitepress" / "config.mts", errors)
     project = product["project"]
     project_name = str(project.get("name", "")).strip()
+    site_description = str(project.get("site_description", "")).strip()
+    ai_description = str(project.get("ai_description", "")).strip()
+    social_image = str(project.get("social_image", "")).strip()
+    favicon = str(project.get("favicon", "")).strip()
     base_url = public_base_url(product)
     docs_url = public_url("", product)
     base_path = f"/{base_url.rstrip('/').rsplit('/', 1)[-1]}/"
@@ -481,6 +493,15 @@ def check_docs_site_config(product: dict, errors: list[str]) -> None:
         require_contains(config, f"title: '{project_name}'", "docs/.vitepress/config.mts", errors)
         require_contains(config, f"content: '{project_name}'", "docs/.vitepress/config.mts", errors)
         require_contains(config, f"name: '{project_name}'", "docs/.vitepress/config.mts", errors)
+    if site_description:
+        require_contains(config, f"description: '{site_description}'", "docs/.vitepress/config.mts", errors)
+    if social_image:
+        require_contains(config, f"content: `${{hostname}}{social_image}`", "docs/.vitepress/config.mts", errors)
+        require_contains(config, f"image: `${{hostname}}{social_image}`", "docs/.vitepress/config.mts", errors)
+    if favicon:
+        require_contains(config, f"href: '{base_path}{favicon}'", "docs/.vitepress/config.mts", errors)
+    if ai_description:
+        require_contains(read(ROOT / "docs" / "public" / "ai.txt", errors), f"description: {ai_description}", "docs/public/ai.txt", errors)
     require_contains(config, f"const hostname = '{docs_url}'", "docs/.vitepress/config.mts", errors)
     require_contains(config, f"base: '{base_path}'", "docs/.vitepress/config.mts", errors)
     if repository_url:
