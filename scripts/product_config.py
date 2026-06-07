@@ -47,6 +47,10 @@ DOCS_SETTINGS_TABLES = {
         "warm_tone_override": {"settings": ["warm_tone_override"]},
     },
     ROOT / "docs" / "photo-sources.md": {
+        "source": {
+            "columns": ["Setting", "Default", "Format", "Description"],
+            "settings": ["photo_source"],
+        },
         "date_filtering": {
             "columns": ["Setting", "Default", "Format", "Description"],
             "settings": [

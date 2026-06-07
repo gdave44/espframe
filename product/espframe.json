@@ -21,6 +21,7 @@
       "key": "photo_source",
       "entity": { "domain": "select", "name": "Photos: Source" },
       "default": "All Photos",
+      "docs_description": "Choose all photos, favorites, albums, people, or Immich memories.",
       "options": ["All Photos", "Favorites", "Album", "Person", "Memories"],
       "firmware_files": ["common/addon/immich_filter.yaml"],
       "docs_files": ["docs/photo-sources.md"]

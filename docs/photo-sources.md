@@ -7,6 +7,12 @@ description: Configure which Immich photos Espframe displays, including all phot
 
 Choose the **Source** in the device web UI at `http://<device-ip>/` under **Photo Source**. Changes apply automatically shortly after you change a control.
 
+<!-- ESPFRAME:SETTINGS_TABLE source START -->
+| Setting | Default | Format | Description |
+|---------|---------|--------|-------------|
+| **Source** | All Photos | Select | Choose all photos, favorites, albums, people, or Immich memories. |
+<!-- ESPFRAME:SETTINGS_TABLE source END -->
+
 | Source | Extra setup | Best for |
 |--------|-------------|----------|
 | **All Photos** | None | Whole library |

@@ -217,10 +217,12 @@ def check_generated_web_metadata(product: dict, web_text: str, errors: list[str]
 
 def check_docs_table_membership(product: dict, errors: list[str]) -> None:
     settings_by_key = {str(setting.get("key", "")): setting for setting in product["settings"]}
+    table_memberships: set[tuple[str, str]] = set()
     for path, table_blocks in DOCS_SETTINGS_TABLES.items():
         relative_path = rel(path)
         for block_id, table in table_blocks.items():
             for key in [str(item) for item in table["settings"]]:
+                table_memberships.add((relative_path, key))
                 setting = settings_by_key.get(key)
                 if not setting:
                     errors.append(f"{relative_path} settings table {block_id} references unknown setting {key}")
@@ -231,6 +233,11 @@ def check_docs_table_membership(product: dict, errors: list[str]) -> None:
                         f"{relative_path} settings table {block_id} includes {key}, "
                         f"but product docs_files does not include {relative_path}"
                     )
+    generated_docs_files = {rel(path) for path in DOCS_SETTINGS_TABLES}
+    for key, setting in settings_by_key.items():
+        for docs_file in [str(item) for item in setting.get("docs_files", [])]:
+            if docs_file in generated_docs_files and (docs_file, key) not in table_memberships:
+                errors.append(f"{key} declares {docs_file} but is not included in a generated settings table")
 
 
 def check_setting(setting: dict, web_text: str, errors: list[str]) -> None:
