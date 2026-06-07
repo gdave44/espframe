@@ -18,11 +18,12 @@ from product_config import (
     DOCS_SETTINGS_TABLES,
     WEB_ENTITY_ALIASES,
     WEB_LOCAL_STATE_KEYS,
-    WEB_MANUAL_ENDPOINT_KEYS,
+    WEB_MANUAL_ENTITIES,
     WEB_STATIC_ENTITIES,
     load_product,
     web_entity_aliases_metadata,
     web_initial_fetch_keys,
+    web_manual_entities_metadata,
     web_settings_metadata,
     web_static_entities_metadata,
 )
@@ -291,6 +292,37 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
                 errors.append(f"Web entity alias {key} optionsKey must be non-empty")
 
 
+def check_manual_web_entity_metadata(errors: list[str]) -> None:
+    seen_entities: set[str] = set()
+    for key, metadata in WEB_MANUAL_ENTITIES.items():
+        if not isinstance(key, str) or not key.strip():
+            errors.append("Manual web entity keys must be non-empty strings")
+        if not isinstance(metadata, dict):
+            errors.append(f"Manual web entity {key} metadata must be an object")
+            continue
+        entity = metadata.get("entity")
+        if not valid_entity_string(entity):
+            errors.append(f"Manual web entity {key} has invalid entity {entity!r}")
+            continue
+        if entity in seen_entities:
+            errors.append(f"Duplicate manual web entity: {entity}")
+        seen_entities.add(str(entity))
+        domain, name = str(entity).split("/", 1)
+        firmware_file = str(metadata.get("firmware_file", "")).strip()
+        if not firmware_file:
+            errors.append(f"Manual web entity {key} is missing firmware_file")
+            continue
+        if Path(firmware_file).is_absolute() or ".." in Path(firmware_file).parts:
+            errors.append(f"Manual web entity {key} has unsafe firmware_file path: {firmware_file}")
+            continue
+        text = read(ROOT / firmware_file, errors)
+        require_contains(text, f"name: \"{name}\"", firmware_file, errors)
+        if domain == "button":
+            require_contains(text, "button:", firmware_file, errors)
+        elif domain == "update":
+            require_contains(text, "update:", firmware_file, errors)
+
+
 def check_generated_web_metadata(product: dict, web_text: str, errors: list[str]) -> None:
     product_settings = extract_js_json_var(web_text, "PRODUCT_SETTINGS", errors)
     if product_settings is not None and product_settings != web_settings_metadata(product["settings"]):
@@ -299,6 +331,10 @@ def check_generated_web_metadata(product: dict, web_text: str, errors: list[str]
     static_entities = extract_js_json_var(web_text, "STATIC_ENTITIES", errors)
     if static_entities is not None and static_entities != web_static_entities_metadata():
         errors.append("Generated web STATIC_ENTITIES does not match product_config.py")
+
+    manual_entities = extract_js_json_var(web_text, "MANUAL_ENTITIES", errors)
+    if manual_entities is not None and manual_entities != web_manual_entities_metadata():
+        errors.append("Generated web MANUAL_ENTITIES does not match product_config.py")
 
     entity_aliases = extract_js_json_var(web_text, "ENTITY_ALIASES", errors)
     if entity_aliases is not None and entity_aliases != web_entity_aliases_metadata():
@@ -341,8 +377,9 @@ def check_static_web_defaults_against_firmware(errors: list[str]) -> None:
 def check_web_template_key_references(product: dict, web_template: str, errors: list[str]) -> None:
     product_keys = {str(setting.get("key", "")).strip() for setting in product["settings"]}
     static_keys = set(WEB_STATIC_ENTITIES)
+    manual_keys = set(WEB_MANUAL_ENTITIES)
     known_state_keys = product_keys | static_keys | set(WEB_LOCAL_STATE_KEYS)
-    known_endpoint_keys = product_keys | static_keys | set(WEB_MANUAL_ENDPOINT_KEYS)
+    known_endpoint_keys = product_keys | static_keys | manual_keys
 
     for key in sorted(set(WEB_STATE_REF_RE.findall(web_template))):
         if key not in known_state_keys:
@@ -559,6 +596,7 @@ def check_settings(product: dict, errors: list[str]) -> None:
     web_template = read(WEB_TEMPLATE, errors)
     web_text = read(WEB_APP, errors)
     check_web_entity_metadata(product, errors)
+    check_manual_web_entity_metadata(errors)
     check_generated_web_metadata(product, web_text, errors)
     check_static_web_defaults_against_firmware(errors)
     check_web_template_key_references(product, web_template, errors)
@@ -567,12 +605,15 @@ def check_settings(product: dict, errors: list[str]) -> None:
     check_docs_table_markers(errors)
     require_contains(web_template, "__ESPFRAME_PRODUCT_SETTINGS__", rel(WEB_TEMPLATE), errors)
     require_contains(web_template, "__ESPFRAME_STATIC_ENTITIES__", rel(WEB_TEMPLATE), errors)
+    require_contains(web_template, "__ESPFRAME_MANUAL_ENTITIES__", rel(WEB_TEMPLATE), errors)
     require_contains(web_template, "__ESPFRAME_ENTITY_ALIASES__", rel(WEB_TEMPLATE), errors)
     require_contains(web_template, "__ESPFRAME_INITIAL_FETCH_KEYS__", rel(WEB_TEMPLATE), errors)
     for needle in (
         "registerStaticEntityStateDefaults",
         "registerProductSettingStateDefaults",
+        "registerManualEntityEndpoints",
         "registerProductSettingEndpoints",
+        "registerManualStateEntities",
         "registerProductSettingEntities",
         "endpoints[key] = eid(parts.domain, parts.name);",
         "ENTITY_STATE_MAP[productSpec.entity] = stateSpec;",

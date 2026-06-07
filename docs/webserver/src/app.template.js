@@ -5,6 +5,7 @@
   var TIMEZONE_LABELS = __ESPFRAME_TIMEZONE_LABELS__;
   var PRODUCT_SETTINGS = __ESPFRAME_PRODUCT_SETTINGS__;
   var STATIC_ENTITIES = __ESPFRAME_STATIC_ENTITIES__;
+  var MANUAL_ENTITIES = __ESPFRAME_MANUAL_ENTITIES__;
   var ENTITY_ALIASES = __ESPFRAME_ENTITY_ALIASES__;
 
   var S = {
@@ -267,13 +268,16 @@
     return entityStringParts(spec && spec.entity);
   }
 
-  var endpoints = {
-    immich_url: eid("text", "Connection: Server URL"),
-    api_key: eid("text", "Connection: API Key"),
-    backlight: eid("light", "Screen: Backlight"),
-    update: eid("update", "Firmware: Update"),
-    update_beta: eid("update", "Firmware: Update Beta"),
-  };
+  var endpoints = {};
+
+  function registerManualEntityEndpoints() {
+    if (!MANUAL_ENTITIES) return;
+    Object.keys(MANUAL_ENTITIES).forEach(function (key) {
+      var parts = entityStringParts(MANUAL_ENTITIES[key] && MANUAL_ENTITIES[key].entity);
+      if (!parts) return;
+      endpoints[key] = eid(parts.domain, parts.name);
+    });
+  }
 
   function registerStaticEntityEndpoints() {
     if (!STATIC_ENTITIES) return;
@@ -293,6 +297,7 @@
     });
   }
 
+  registerManualEntityEndpoints();
   registerStaticEntityEndpoints();
   registerProductSettingEndpoints();
 
@@ -578,10 +583,16 @@
   }
 
   // Entity id -> state key mapping; optional optionsKey and default.
-  var ENTITY_STATE_MAP = {
-    "text/Connection: Server URL": { key: "immich_url" },
-    "text/Connection: API Key": { key: "api_key" }
-  };
+  var ENTITY_STATE_MAP = {};
+
+  function registerManualStateEntities() {
+    if (!MANUAL_ENTITIES) return;
+    ["immich_url", "api_key"].forEach(function (key) {
+      var manualSpec = MANUAL_ENTITIES[key];
+      if (!manualSpec || typeof manualSpec.entity !== "string") return;
+      ENTITY_STATE_MAP[manualSpec.entity] = { key: key };
+    });
+  }
 
   function registerStaticEntities() {
     if (!STATIC_ENTITIES) return;
@@ -609,6 +620,7 @@
     });
   }
 
+  registerManualStateEntities();
   registerStaticEntities();
   registerProductSettingEntities();
 
@@ -1291,7 +1303,7 @@
       if (!requests.length) return;
       Promise.all(requests).then(function () {
         if (changes.source || changes.album || changes.person)
-          post(eid("button", "Apply Photo Source") + "/press");
+          post(endpoints.apply_photo_source + "/press");
       });
     }
     function schedulePhotoSourceApply(delayMs, changes) {
@@ -1567,7 +1579,7 @@
         post(endpoints.relative_amount + "/set", { value: vals.amount }),
         post(endpoints.relative_unit + "/set", { option: vals.unit })
       ]).then(function () {
-        post(eid("button", "Apply Photo Source") + "/press");
+        post(endpoints.apply_photo_source + "/press");
       });
     }
 
@@ -2015,7 +2027,7 @@
       checkBtn.disabled = true;
       checkBtn.textContent = "Checking\u2026";
       statusMsg.textContent = "";
-      post(eid("button", "Firmware: Check for Update") + "/press")
+      post(endpoints.firmware_check + "/press")
         .then(function () {
           return new Promise(function (r) {
             setTimeout(r, 4000);

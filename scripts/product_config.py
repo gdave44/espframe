@@ -39,6 +39,15 @@ WEB_ENTITY_ALIASES = {
     "schedule_on_hour": [{"entity": "number/Screen: Schedule On", "default": 6, "number": True}],
     "schedule_off_hour": [{"entity": "number/Screen: Schedule Off", "default": 23, "number": True}],
 }
+WEB_MANUAL_ENTITIES = {
+    "immich_url": {"entity": "text/Connection: Server URL", "firmware_file": "common/addon/immich_config.yaml"},
+    "api_key": {"entity": "text/Connection: API Key", "firmware_file": "common/addon/immich_config.yaml"},
+    "backlight": {"entity": "light/Screen: Backlight", "firmware_file": "common/addon/backlight.yaml"},
+    "update": {"entity": "update/Firmware: Update", "firmware_file": "common/addon/firmware_update.yaml"},
+    "update_beta": {"entity": "update/Firmware: Update Beta", "firmware_file": "common/addon/firmware_update.yaml"},
+    "apply_photo_source": {"entity": "button/Apply Photo Source", "firmware_file": "common/addon/immich_filter.yaml"},
+    "firmware_check": {"entity": "button/Firmware: Check for Update", "firmware_file": "common/addon/firmware_update.yaml"},
+}
 WEB_LOCAL_STATE_KEYS = {
     "api_key",
     "backlight_on",
@@ -53,7 +62,6 @@ WEB_LOCAL_STATE_KEYS = {
     "tz_options",
     "update_available",
 }
-WEB_MANUAL_ENDPOINT_KEYS = {"api_key", "backlight", "immich_url", "update", "update_beta"}
 DOCS_SETTINGS_TABLES = {
     ROOT / "docs" / "screen-settings.md": {
         "screen_brightness": {"settings": ["brightness_day", "brightness_night"]},
@@ -185,6 +193,10 @@ def web_static_entities_metadata() -> dict[str, dict[str, Any]]:
 
 def web_entity_aliases_metadata() -> dict[str, list[dict[str, Any]]]:
     return {key: [dict(alias) for alias in aliases] for key, aliases in WEB_ENTITY_ALIASES.items()}
+
+
+def web_manual_entities_metadata() -> dict[str, dict[str, Any]]:
+    return {key: {"entity": metadata["entity"]} for key, metadata in WEB_MANUAL_ENTITIES.items()}
 
 
 def web_initial_fetch_keys(product_settings: list[dict[str, Any]] | None = None) -> list[str]:
