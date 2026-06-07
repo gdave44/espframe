@@ -167,13 +167,20 @@ def public_base_url(product: dict[str, Any] | None = None) -> str:
     return str(data["project"].get("public_base_url", "")).rstrip("/")
 
 
+def public_url(path: str = "", product: dict[str, Any] | None = None) -> str:
+    base_url = public_base_url(product)
+    clean_path = path.lstrip("/")
+    if not clean_path:
+        return f"{base_url}/"
+    return f"{base_url}/{clean_path}"
+
+
 def device_public_manifest_urls(product: dict[str, Any] | None = None) -> dict[str, dict[str, str]]:
     data = product if product is not None else load_product()
-    base_url = public_base_url(data)
     return {
         str(device["slug"]): {
-            "stable": f'{base_url}/{str(device["public_manifest"]).lstrip("/")}',
-            "beta": f'{base_url}/{str(device["public_beta_manifest"]).lstrip("/")}',
+            "stable": public_url(str(device["public_manifest"]), data),
+            "beta": public_url(str(device["public_beta_manifest"]), data),
         }
         for device in data["devices"]
     }

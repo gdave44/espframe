@@ -24,6 +24,7 @@ from product_config import (
     device_public_manifest_urls,
     load_product,
     public_base_url,
+    public_url,
     release_matrix_devices,
     web_entity_aliases_metadata,
     web_initial_fetch_keys,
@@ -254,6 +255,32 @@ def check_public_manifest_urls(product: dict, errors: list[str]) -> None:
         ):
             require_contains(text, url, filename, errors)
     require_contains(docs_workflow, f'--base-url "{base_url}"', ".github/workflows/docs.yml", errors)
+
+
+def check_public_site_references(product: dict, errors: list[str]) -> None:
+    base_url = public_base_url(product)
+    docs_url = public_url("", product)
+    install_url = public_url("install", product)
+    web_app_url = public_url("webserver/app.js", product)
+    project_name = str(product["project"].get("name", "")).strip()
+
+    device_yaml = read(ROOT / "devices" / "guition-esp32-p4-jc8012p4a1" / "device" / "device.yaml", errors)
+    robots = read(ROOT / "docs" / "public" / "robots.txt", errors)
+    ai_txt = read(ROOT / "docs" / "public" / "ai.txt", errors)
+    readme = read(ROOT / "README.md", errors)
+
+    require_contains(device_yaml, f'js_url: "{web_app_url}"', "devices/guition-esp32-p4-jc8012p4a1/device/device.yaml", errors)
+    require_contains(robots, f"Sitemap: {public_url('sitemap.xml', product)}", "docs/public/robots.txt", errors)
+
+    if project_name:
+        require_contains(ai_txt, f"name: {project_name}", "docs/public/ai.txt", errors)
+        require_contains(ai_txt, f'attribute to "{project_name}"', "docs/public/ai.txt", errors)
+    require_contains(ai_txt, f"url: {docs_url}", "docs/public/ai.txt", errors)
+    require_contains(ai_txt, f"Prefer canonical URLs: {docs_url} and {install_url}", "docs/public/ai.txt", errors)
+    require_contains(ai_txt, f"Documentation: {docs_url}", "docs/public/ai.txt", errors)
+    require_contains(readme, f"]({install_url})", "README.md installer link", errors)
+    require_contains(readme, f"]({docs_url})", "README.md docs link", errors)
+    require_contains(readme, base_url, "README.md public base URL", errors)
 
 
 def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
@@ -765,6 +792,7 @@ def main() -> int:
     check_project_metadata(product, errors)
     check_devices(product, errors)
     check_public_manifest_urls(product, errors)
+    check_public_site_references(product, errors)
     check_device_workflow_contract(product, errors)
     check_esphome_version(product, errors)
     check_workflows(errors)
