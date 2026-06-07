@@ -15,26 +15,6 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 PRODUCT_PATH = ROOT / "product" / "espframe.json"
-WEB_STATIC_ENTITIES = {
-    "firmware": {"entity": "text_sensor/Firmware: Version", "fetch": True},
-    "timezone": {
-        "entity": "select/Clock: Timezone",
-        "optionsKey": "tz_options",
-        "default": "Europe/London (GMT+0)",
-        "fetch": True,
-    },
-    "ntp_server_1": {"entity": "text/Clock: NTP Server 1", "default": "0.pool.ntp.org", "fetch": True},
-    "ntp_server_2": {"entity": "text/Clock: NTP Server 2", "default": "1.pool.ntp.org", "fetch": True},
-    "ntp_server_3": {"entity": "text/Clock: NTP Server 3", "default": "2.pool.ntp.org", "fetch": True},
-    "album_ids": {"entity": "text/Photos: Album IDs", "fetch": True},
-    "album_labels": {"entity": "text/Photos: Album Labels", "fetch": True},
-    "person_ids": {"entity": "text/Photos: Person IDs", "fetch": True},
-    "person_labels": {"entity": "text/Photos: Person Labels", "fetch": True},
-    "sunrise": {"entity": "text_sensor/Screen: Sunrise", "fetch": True},
-    "sunset": {"entity": "text_sensor/Screen: Sunset", "fetch": True},
-    "developer_features_enabled": {"entity": "switch/Developer: Features", "boolFromState": True, "fetch": True},
-    "show_clock": {"entity": "switch/Clock: Show", "boolFromState": True, "default": True},
-}
 WEB_ENTITY_ALIASES = {
     "schedule_enabled": [{"entity": "switch/Screen: Schedule", "boolFromState": True}],
     "schedule_on_hour": [{"entity": "number/Screen: Schedule On", "default": 6, "number": True}],
@@ -235,9 +215,21 @@ def web_settings_metadata(product_settings: list[dict[str, Any]] | None = None) 
     return result
 
 
-def web_static_entities_metadata() -> dict[str, dict[str, Any]]:
+def web_static_entities(product: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
+    data = product if product is not None else load_product()
+    entities = data["project"].get("web_static_entities", {})
+    if not isinstance(entities, dict):
+        return {}
+    return {
+        str(key): dict(metadata)
+        for key, metadata in entities.items()
+        if isinstance(metadata, dict)
+    }
+
+
+def web_static_entities_metadata(product: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
-    for key, metadata in WEB_STATIC_ENTITIES.items():
+    for key, metadata in web_static_entities(product).items():
         result[key] = {field: value for field, value in metadata.items() if field != "fetch"}
     return result
 
@@ -256,6 +248,9 @@ def web_local_state_keys(product: dict[str, Any] | None = None) -> set[str]:
 
 
 def web_initial_fetch_keys(product_settings: list[dict[str, Any]] | None = None) -> list[str]:
+    product = load_product()
+    if product_settings is None:
+        product_settings = product["settings"]
     keys: list[str] = []
 
     def add(key: str) -> None:
@@ -263,9 +258,9 @@ def web_initial_fetch_keys(product_settings: list[dict[str, Any]] | None = None)
             keys.append(key)
 
     add("firmware")
-    for setting in product_settings if product_settings is not None else settings():
+    for setting in product_settings:
         add(str(setting["key"]))
-    for key, metadata in WEB_STATIC_ENTITIES.items():
+    for key, metadata in web_static_entities(product).items():
         if metadata.get("fetch"):
             add(key)
     return keys

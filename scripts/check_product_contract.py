@@ -18,7 +18,6 @@ from product_config import (
     DOCS_SETTINGS_TABLES,
     WEB_ENTITY_ALIASES,
     WEB_MANUAL_ENTITIES,
-    WEB_STATIC_ENTITIES,
     default_public_manifest_urls,
     device_public_manifest_urls,
     load_product,
@@ -30,6 +29,7 @@ from product_config import (
     web_local_state_keys,
     web_manual_entities_metadata,
     web_settings_metadata,
+    web_static_entities,
     web_static_entities_metadata,
 )
 
@@ -1770,13 +1770,14 @@ def check_clock_time_metadata(product: dict, errors: list[str]) -> None:
         if clock_format_options and clock_format_setting.get("options") != clock_format_options:
             errors.append("project.clock_format_options must match the clock_format setting options")
 
-    static_timezone_default = WEB_STATIC_ENTITIES["timezone"].get("default")
+    static_entities = web_static_entities(product)
+    static_timezone_default = static_entities.get("timezone", {}).get("default")
     if clock_default_timezone and static_timezone_default != clock_default_timezone:
         errors.append("project.clock_default_timezone must match the static web timezone default")
-    if isinstance(clock_default_show, bool) and WEB_STATIC_ENTITIES["show_clock"].get("default") != clock_default_show:
+    if isinstance(clock_default_show, bool) and static_entities.get("show_clock", {}).get("default") != clock_default_show:
         errors.append("project.clock_default_show must match the static web show_clock default")
     static_ntp_defaults = [
-        str(WEB_STATIC_ENTITIES[key].get("default", ""))
+        str(static_entities.get(key, {}).get("default", ""))
         for key in ("ntp_server_1", "ntp_server_2", "ntp_server_3")
     ]
     if ntp_default_servers and static_ntp_defaults != ntp_default_servers:
@@ -3062,9 +3063,13 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
         f'{setting.get("entity", {}).get("domain", "")}/{setting.get("entity", {}).get("name", "")}'
         for setting in product["settings"]
     }
+    static_entities = web_static_entities(product)
     static_entities_seen: set[str] = set()
 
-    for key, metadata in WEB_STATIC_ENTITIES.items():
+    if not static_entities:
+        errors.append("project.web_static_entities must be a non-empty object")
+
+    for key, metadata in static_entities.items():
         if not isinstance(key, str) or not key.strip():
             errors.append("Static web entity keys must be non-empty strings")
         if key in product_keys:
@@ -3088,7 +3093,7 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"Static web entity {key} optionsKey must be non-empty")
 
     alias_entities_seen: set[str] = set()
-    valid_state_keys = product_keys | set(WEB_STATIC_ENTITIES)
+    valid_state_keys = product_keys | set(static_entities)
     for key, aliases in WEB_ENTITY_ALIASES.items():
         if key not in valid_state_keys:
             errors.append(f"Web entity alias {key} does not point at a known state key")
@@ -3152,8 +3157,8 @@ def check_generated_web_metadata(product: dict, web_text: str, errors: list[str]
         errors.append("Generated web PRODUCT_SETTINGS does not match product/espframe.json")
 
     static_entities = extract_js_json_var(web_text, "STATIC_ENTITIES", errors)
-    if static_entities is not None and static_entities != web_static_entities_metadata():
-        errors.append("Generated web STATIC_ENTITIES does not match product_config.py")
+    if static_entities is not None and static_entities != web_static_entities_metadata(product):
+        errors.append("Generated web STATIC_ENTITIES does not match product/espframe.json")
 
     manual_entities = extract_js_json_var(web_text, "MANUAL_ENTITIES", errors)
     if manual_entities is not None and manual_entities != web_manual_entities_metadata():
@@ -3188,9 +3193,10 @@ def check_generated_web_metadata(product: dict, web_text: str, errors: list[str]
         errors.append("Generated web SUPPORT_BUTTON_IMAGE_URL does not match product/espframe.json")
 
 
-def check_static_web_defaults_against_firmware(errors: list[str]) -> None:
+def check_static_web_defaults_against_firmware(product: dict, errors: list[str]) -> None:
     text = read(TIME_YAML, errors)
-    timezone_default = WEB_STATIC_ENTITIES["timezone"].get("default")
+    static_entities = web_static_entities(product)
+    timezone_default = static_entities.get("timezone", {}).get("default")
     if not isinstance(timezone_default, str) or not timezone_default:
         errors.append("Static web entity timezone default must match the firmware initial_option")
     else:
@@ -3202,14 +3208,14 @@ def check_static_web_defaults_against_firmware(errors: list[str]) -> None:
         )
 
     for key in ("ntp_server_1", "ntp_server_2", "ntp_server_3"):
-        default = WEB_STATIC_ENTITIES[key].get("default")
+        default = static_entities.get(key, {}).get("default")
         if not isinstance(default, str) or not default:
             errors.append(f"Static web entity {key} default must match the firmware substitution")
             continue
         require_contains(text, f'  {key}: "{default}"', rel(TIME_YAML), errors)
         require_contains(text, f'initial_value: "${{{key}}}"', rel(TIME_YAML), errors)
 
-    show_clock_default = WEB_STATIC_ENTITIES["show_clock"].get("default")
+    show_clock_default = static_entities.get("show_clock", {}).get("default")
     if not isinstance(show_clock_default, bool):
         errors.append("Static web entity show_clock default must be true or false")
         return
@@ -3260,7 +3266,7 @@ def check_web_ui_metadata(product: dict, web_template: str, web_text: str, error
 
 def check_web_template_key_references(product: dict, web_template: str, errors: list[str]) -> None:
     product_keys = {str(setting.get("key", "")).strip() for setting in product["settings"]}
-    static_keys = set(WEB_STATIC_ENTITIES)
+    static_keys = set(web_static_entities(product))
     manual_keys = set(WEB_MANUAL_ENTITIES)
     local_state_keys = web_local_state_keys(product)
     known_state_keys = product_keys | static_keys | local_state_keys
@@ -3487,7 +3493,7 @@ def check_settings(product: dict, errors: list[str]) -> None:
     check_web_entity_metadata(product, errors)
     check_manual_web_entity_metadata(errors)
     check_generated_web_metadata(product, web_text, errors)
-    check_static_web_defaults_against_firmware(errors)
+    check_static_web_defaults_against_firmware(product, errors)
     check_web_ui_metadata(product, web_template, web_text, errors)
     check_web_template_key_references(product, web_template, errors)
     check_docs_table_metadata(product, errors)
