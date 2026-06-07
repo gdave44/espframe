@@ -356,6 +356,14 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
     for field in ("screen_brightness_day_night_source", "screen_schedule_behavior"):
         if not str(project.get(field, "")).strip():
             errors.append(f"project.{field} is required")
+    for field in (
+        "screen_tone_base_purpose",
+        "screen_tone_night_timing",
+        "screen_tone_night_recovery",
+        "screen_tone_override_duration",
+    ):
+        if not str(project.get(field, "")).strip():
+            errors.append(f"project.{field} is required")
     screen_schedule_effects = project.get("screen_schedule_off_effects", [])
     if not isinstance(screen_schedule_effects, list) or not screen_schedule_effects:
         errors.append("project.screen_schedule_off_effects must be a non-empty list")
@@ -735,6 +743,67 @@ def check_screen_schedule_metadata(product: dict, errors: list[str]) -> None:
         require_contains(backlight_schedule_yaml, needle, "common/addon/backlight_schedule.yaml", errors)
     for key in ("schedule_enabled", "schedule_on_hour", "schedule_off_hour", "schedule_wake_timeout"):
         require_contains(web_template, key, rel(WEB_TEMPLATE), errors)
+
+
+def check_screen_tone_metadata(product: dict, errors: list[str]) -> None:
+    project = product["project"]
+    base_purpose = str(project.get("screen_tone_base_purpose", "")).strip()
+    night_timing = str(project.get("screen_tone_night_timing", "")).strip()
+    night_recovery = str(project.get("screen_tone_night_recovery", "")).strip()
+    override_duration = str(project.get("screen_tone_override_duration", "")).strip()
+
+    readme = read(ROOT / "README.md", errors)
+    index_docs = read(ROOT / "docs" / "index.md", errors)
+    screen_tone_docs = read(ROOT / "docs" / "screen-tone.md", errors)
+    backup_docs = read(ROOT / "docs" / "backup.md", errors)
+    warm_tones_yaml = read(ROOT / "common" / "addon" / "warm_tones.yaml", errors)
+    slideshow_yaml = read(ROOT / "common" / "addon" / "immich_slideshow.yaml", errors)
+    web_template = read(WEB_TEMPLATE, errors)
+
+    if base_purpose:
+        require_contains(screen_tone_docs, base_purpose, "docs/screen-tone.md", errors)
+        require_contains(warm_tones_yaml, base_purpose, "common/addon/warm_tones.yaml", errors)
+    for needle in ("blue cast", "Warmer", "less blue cast"):
+        require_contains(screen_tone_docs, needle, "docs/screen-tone.md", errors)
+    if night_timing:
+        require_contains(screen_tone_docs, night_timing, "docs/screen-tone.md", errors)
+        require_contains(warm_tones_yaml, night_timing, "common/addon/warm_tones.yaml", errors)
+    if night_recovery:
+        require_contains(screen_tone_docs, night_recovery, "docs/screen-tone.md", errors)
+        require_contains(warm_tones_yaml, night_recovery, "common/addon/warm_tones.yaml", errors)
+    if override_duration:
+        require_contains(screen_tone_docs, override_duration, "docs/screen-tone.md", errors)
+        require_contains(warm_tones_yaml, override_duration, "common/addon/warm_tones.yaml", errors)
+    for needle in (
+        "Night Tone",
+        "sunset and sunrise",
+        "Display Tone Adjustment",
+    ):
+        require_contains(index_docs, needle, "docs/index.md", errors)
+    for needle in ("warm up a panel that looks too blue", "softer night tone after sunset"):
+        require_contains(readme, needle, "README.md", errors)
+    require_contains(backup_docs, "Screen Tone", "docs/backup.md", errors)
+    for needle in (
+        "Screen: Tone Adjustment",
+        "Screen: Night Tone Adjustment",
+        "Screen: Warm Tone Override",
+        "Screen: Display Tone",
+        "Screen: Warm Tone Intensity",
+        "base_tone_enabled",
+        "warm_tones_enabled",
+        "warm_tone_override",
+        "apply_warm_tones",
+    ):
+        require_contains(warm_tones_yaml, needle, "common/addon/warm_tones.yaml", errors)
+    for needle in (
+        "Night Tone Adjustment",
+        "Turn on until sunrise",
+        "base_tone",
+        "warm_tone_intensity",
+        "warm_tone_override",
+    ):
+        require_contains(web_template, needle, rel(WEB_TEMPLATE), errors)
+    require_contains(slideshow_yaml, "accent + warm tones", "common/addon/immich_slideshow.yaml", errors)
 
 
 def check_public_manifest_urls(product: dict, errors: list[str]) -> None:
@@ -1545,6 +1614,7 @@ def main() -> int:
     check_privacy_metadata(product, errors)
     check_touch_controls_metadata(product, errors)
     check_screen_schedule_metadata(product, errors)
+    check_screen_tone_metadata(product, errors)
     check_devices(product, errors)
     check_public_manifest_urls(product, errors)
     check_public_site_references(product, errors)
