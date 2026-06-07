@@ -3943,12 +3943,17 @@ def check_node_version(product: dict, errors: list[str]) -> None:
 
 def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
     product_keys = {str(setting.get("key", "")).strip() for setting in product["settings"]}
+    product_key_domains = {
+        str(setting.get("key", "")).strip(): str(setting.get("entity", {}).get("domain", "")).strip()
+        for setting in product["settings"]
+    }
     product_entities = {
         f'{setting.get("entity", {}).get("domain", "")}/{setting.get("entity", {}).get("name", "")}'
         for setting in product["settings"]
     }
     static_entities = web_static_entities(product)
     static_entities_seen: set[str] = set()
+    state_domains = dict(product_key_domains)
 
     if not static_entities:
         errors.append("project.web_static_entities must be a non-empty object")
@@ -3968,6 +3973,7 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"Duplicate static web entity: {entity}")
         else:
             static_entities_seen.add(str(entity))
+            state_domains[str(key)] = str(entity).split("/", 1)[0]
         if entity in product_entities:
             errors.append(f"Static web entity {key} duplicates product entity {entity}")
         for field in ("fetch", "boolFromState", "number"):
@@ -4004,10 +4010,25 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
             entity = alias.get("entity")
             if not valid_entity_string(entity):
                 errors.append(f"Web entity alias {key} has invalid entity {entity!r}")
-            elif entity in alias_entities_seen:
-                errors.append(f"Duplicate web entity alias: {entity}")
             else:
-                alias_entities_seen.add(str(entity))
+                alias_domain = str(entity).split("/", 1)[0]
+                expected_domain = state_domains.get(key)
+                if expected_domain and alias_domain != expected_domain:
+                    errors.append(
+                        f"Web entity alias {key} domain {alias_domain!r} must match canonical domain {expected_domain!r}"
+                    )
+                if alias_domain == "switch" and alias.get("boolFromState") is not True:
+                    errors.append(f"Web entity alias {key} switch alias must set boolFromState: true")
+                if alias_domain != "switch" and alias.get("boolFromState") is True:
+                    errors.append(f"Web entity alias {key} boolFromState is only valid for switch aliases")
+                if alias_domain == "number" and alias.get("number") is not True:
+                    errors.append(f"Web entity alias {key} number alias must set number: true")
+                if alias_domain != "number" and alias.get("number") is True:
+                    errors.append(f"Web entity alias {key} number is only valid for number aliases")
+                if entity in alias_entities_seen:
+                    errors.append(f"Duplicate web entity alias: {entity}")
+                else:
+                    alias_entities_seen.add(str(entity))
             if entity in product_entities or entity in static_entities_seen:
                 errors.append(f"Web entity alias {key} duplicates canonical entity {entity}")
             for field in ("boolFromState", "number"):
