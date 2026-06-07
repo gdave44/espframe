@@ -4066,6 +4066,19 @@ def check_web_entity_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"project.web_initial_fetch_first_keys {key} must point at a static web entity")
         elif metadata.get("fetch") is not True:
             errors.append(f"project.web_initial_fetch_first_keys {key} must point at a fetch-enabled static web entity")
+    initial_fetch_keys = web_initial_fetch_keys(product["settings"])
+    if len(initial_fetch_keys) != len(set(initial_fetch_keys)):
+        errors.append("Generated web initial fetch keys must not contain duplicates")
+    known_fetch_keys = product_keys | set(static_entities)
+    for key in initial_fetch_keys:
+        if key not in known_fetch_keys:
+            errors.append(f"Generated web initial fetch key {key} must point at a product or static web entity")
+    for key in product_keys:
+        if key not in initial_fetch_keys:
+            errors.append(f"Product setting {key} must be included in generated web initial fetch keys")
+    for key, metadata in static_entities.items():
+        if metadata.get("fetch") is True and key not in initial_fetch_keys:
+            errors.append(f"Fetch-enabled static web entity {key} must be included in generated web initial fetch keys")
 
     for key, metadata in static_entities.items():
         if not isinstance(key, str) or not key.strip():
