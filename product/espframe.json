@@ -383,6 +383,11 @@
     "docs_firmware_verify_delay_seconds": 15,
     "docs_dist_artifact_name": "docs-dist",
     "docs_firmware_artifact_name": "firmware",
+    "docs_dist_output_path": "docs/.vitepress/dist",
+    "docs_deploy_path": "dist",
+    "github_pages_environment": "github-pages",
+    "github_pages_concurrency_group": "pages",
+    "github_pages_cancel_in_progress": false,
     "generated_asset_outputs": [
       "components/espframe/tz_data_generated.h",
       "common/addon/time.yaml",

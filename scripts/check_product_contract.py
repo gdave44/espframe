@@ -1133,6 +1133,10 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
         "slideshow_check_interval",
         "docs_dist_artifact_name",
         "docs_firmware_artifact_name",
+        "docs_dist_output_path",
+        "docs_deploy_path",
+        "github_pages_environment",
+        "github_pages_concurrency_group",
         "setup_captive_portal_ip",
         "setup_screen_dim_delay",
         "setup_screen_dim_brightness",
@@ -1164,6 +1168,8 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
             errors.append(f"project.{field} must be a positive integer")
     if not isinstance(project.get("web_server_include_internal"), bool):
         errors.append("project.web_server_include_internal must be true or false")
+    if not isinstance(project.get("github_pages_cancel_in_progress"), bool):
+        errors.append("project.github_pages_cancel_in_progress must be true or false")
     if "web_server_factory_js_url" not in project or not isinstance(project.get("web_server_factory_js_url"), str):
         errors.append("project.web_server_factory_js_url must be a string")
     sorting_groups = project.get("web_server_sorting_groups", [])
@@ -2949,6 +2955,11 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
     changelog_fallback = str(project.get("release_changelog_fallback_category", "")).strip()
     docs_dist_artifact_name = str(project.get("docs_dist_artifact_name", "")).strip()
     docs_firmware_artifact_name = str(project.get("docs_firmware_artifact_name", "")).strip()
+    docs_dist_output_path = str(project.get("docs_dist_output_path", "")).strip()
+    docs_deploy_path = str(project.get("docs_deploy_path", "")).strip()
+    pages_environment = str(project.get("github_pages_environment", "")).strip()
+    pages_concurrency_group = str(project.get("github_pages_concurrency_group", "")).strip()
+    pages_cancel_in_progress = project.get("github_pages_cancel_in_progress")
     docs_verify_retries = project.get("docs_firmware_verify_retries")
     docs_verify_delay = project.get("docs_firmware_verify_delay_seconds")
     actions_runner = str(project.get("github_actions_runner", "")).strip()
@@ -3018,9 +3029,38 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         require_contains(firmware_release_script, "firmware_placeholder_versions", "scripts/firmware_release.py", errors)
     if docs_dist_artifact_name:
         require_contains(docs_workflow, f"name: {docs_dist_artifact_name}", ".github/workflows/docs.yml", errors)
+    if docs_dist_output_path:
+        require_contains(docs_workflow, f"path: {docs_dist_output_path}", ".github/workflows/docs.yml", errors)
     if docs_firmware_artifact_name:
         require_contains(docs_workflow, f"name: {docs_firmware_artifact_name}", ".github/workflows/docs.yml", errors)
-        require_contains(docs_workflow, f"path: dist/{docs_firmware_artifact_name}", ".github/workflows/docs.yml", errors)
+        if docs_deploy_path:
+            require_contains(
+                docs_workflow,
+                f"path: {docs_deploy_path}/{docs_firmware_artifact_name}",
+                ".github/workflows/docs.yml",
+                errors,
+            )
+            require_contains(
+                docs_workflow,
+                f"rm -rf {docs_deploy_path}/{docs_firmware_artifact_name}",
+                ".github/workflows/docs.yml",
+                errors,
+            )
+    if docs_deploy_path:
+        require_contains(docs_workflow, f"path: {docs_deploy_path}", ".github/workflows/docs.yml", errors)
+    if pages_environment:
+        require_contains(docs_workflow, "environment:", ".github/workflows/docs.yml", errors)
+        require_contains(docs_workflow, f"name: {pages_environment}", ".github/workflows/docs.yml", errors)
+    if pages_concurrency_group:
+        require_contains(docs_workflow, "concurrency:", ".github/workflows/docs.yml", errors)
+        require_contains(docs_workflow, f"group: {pages_concurrency_group}", ".github/workflows/docs.yml", errors)
+    if isinstance(pages_cancel_in_progress, bool):
+        require_contains(
+            docs_workflow,
+            f"cancel-in-progress: {str(pages_cancel_in_progress).lower()}",
+            ".github/workflows/docs.yml",
+            errors,
+        )
     if isinstance(docs_verify_retries, int) and not isinstance(docs_verify_retries, bool):
         require_contains(docs_workflow, f"--retries {docs_verify_retries}", ".github/workflows/docs.yml", errors)
     if isinstance(docs_verify_delay, int) and not isinstance(docs_verify_delay, bool):
@@ -3037,9 +3077,6 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         "python3 scripts/firmware_release.py verify-directory",
         "python3 scripts/firmware_release.py verify-pages",
         f'--base-url "{public_base_url(product)}"',
-        "rm -rf dist/firmware",
-        "environment:",
-        "name: github-pages",
     ):
         require_contains(docs_workflow, needle, ".github/workflows/docs.yml", errors)
 
