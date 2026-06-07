@@ -70,6 +70,14 @@ def require_workflow_path_filter(text: str, path: str, label: str, errors: list[
         errors.append(f"{label} is missing workflow path filter {path!r}")
 
 
+def require_workflow_needs(text: str, dependencies: list[str], label: str, errors: list[str]) -> None:
+    if len(dependencies) == 1:
+        needle = f"    needs: {dependencies[0]}"
+    else:
+        needle = f"    needs: [{', '.join(dependencies)}]"
+    require_contains(text, needle, label, errors)
+
+
 def extract_js_json_var(text: str, var_name: str, errors: list[str]) -> object | None:
     match = re.search(rf"\bvar {re.escape(var_name)} = (.*?);", text)
     if not match:
@@ -763,6 +771,48 @@ def check_project_metadata(product: dict, errors: list[str]) -> None:
                 errors.append(f"project.github_workflow_event_types.{key or '<missing>'} must only contain non-empty strings")
             if len(event_types) != len(set(event_types)):
                 errors.append(f"project.github_workflow_event_types.{key or '<missing>'} must not contain duplicate event types")
+    workflow_jobs = project.get("github_workflow_jobs", {})
+    if not isinstance(workflow_jobs, dict) or not workflow_jobs:
+        errors.append("project.github_workflow_jobs must be a non-empty object")
+    else:
+        configured_workflows = {str(name).strip() for name in workflow_jobs}
+        missing_workflows = sorted(expected_workflows - configured_workflows)
+        extra_workflows = sorted(configured_workflows - expected_workflows)
+        if missing_workflows:
+            errors.append(f"project.github_workflow_jobs is missing workflows: {', '.join(missing_workflows)}")
+        if extra_workflows:
+            errors.append(f"project.github_workflow_jobs contains unknown workflows: {', '.join(extra_workflows)}")
+        for raw_workflow, raw_jobs in workflow_jobs.items():
+            workflow = str(raw_workflow).strip()
+            if not workflow:
+                errors.append("project.github_workflow_jobs keys must be non-empty strings")
+            if not isinstance(raw_jobs, dict) or not raw_jobs:
+                errors.append(f"project.github_workflow_jobs.{workflow or '<missing>'} must be a non-empty object")
+                continue
+            for raw_job_id, raw_job_name in raw_jobs.items():
+                job_id = str(raw_job_id).strip()
+                job_name = str(raw_job_name).strip()
+                if not job_id:
+                    errors.append(f"project.github_workflow_jobs.{workflow or '<missing>'} job ids must be non-empty strings")
+                if not job_name:
+                    errors.append(f"project.github_workflow_jobs.{workflow or '<missing>'}.{job_id or '<missing>'} must be a non-empty string")
+    workflow_job_dependencies = project.get("github_workflow_job_dependencies", {})
+    if not isinstance(workflow_job_dependencies, dict) or not workflow_job_dependencies:
+        errors.append("project.github_workflow_job_dependencies must be a non-empty object")
+    else:
+        for raw_key, raw_dependencies in workflow_job_dependencies.items():
+            key = str(raw_key).strip()
+            workflow, _, job_id = key.partition(".")
+            if not workflow or not job_id:
+                errors.append(f"project.github_workflow_job_dependencies.{key or '<missing>'} must use workflow.job format")
+            if not isinstance(raw_dependencies, list) or not raw_dependencies:
+                errors.append(f"project.github_workflow_job_dependencies.{key or '<missing>'} must be a non-empty list")
+                continue
+            dependencies = [str(dependency).strip() for dependency in raw_dependencies]
+            if any(not dependency for dependency in dependencies):
+                errors.append(f"project.github_workflow_job_dependencies.{key or '<missing>'} must only contain non-empty strings")
+            if len(dependencies) != len(set(dependencies)):
+                errors.append(f"project.github_workflow_job_dependencies.{key or '<missing>'} must not contain duplicate jobs")
     release_asset_suffixes = project.get("release_asset_suffixes", [])
     if not isinstance(release_asset_suffixes, list) or not release_asset_suffixes:
         errors.append("project.release_asset_suffixes must be a non-empty list")
@@ -3332,6 +3382,31 @@ def check_workflows(product: dict, errors: list[str]) -> None:
                 event_type_name = str(event_type).strip()
                 if event_type_name:
                     require_contains(text, f"types: [{event_type_name}]", label, errors)
+    workflow_jobs = product["project"].get("github_workflow_jobs", {})
+    if isinstance(workflow_jobs, dict):
+        for workflow, raw_jobs in workflow_jobs.items():
+            workflow_name = str(workflow).strip()
+            if workflow_name not in workflow_texts or not isinstance(raw_jobs, dict):
+                continue
+            label, text = workflow_texts[workflow_name]
+            for raw_job_id, raw_job_name in raw_jobs.items():
+                job_id = str(raw_job_id).strip()
+                job_name = str(raw_job_name).strip()
+                if job_id:
+                    require_contains(text, f"  {job_id}:", label, errors)
+                if job_name:
+                    require_contains(text, f"    name: {job_name}", label, errors)
+    workflow_job_dependencies = product["project"].get("github_workflow_job_dependencies", {})
+    if isinstance(workflow_job_dependencies, dict):
+        for key, raw_dependencies in workflow_job_dependencies.items():
+            workflow_name, _, job_id = str(key).strip().partition(".")
+            if workflow_name not in workflow_texts or not job_id or not isinstance(raw_dependencies, list):
+                continue
+            dependencies = [str(dependency).strip() for dependency in raw_dependencies if str(dependency).strip()]
+            if dependencies:
+                label, text = workflow_texts[workflow_name]
+                require_contains(text, f"  {job_id}:", label, errors)
+                require_workflow_needs(text, dependencies, label, errors)
     workflow_permissions = product["project"].get("github_workflow_permissions", {})
     workflow_names = product["project"].get("github_workflow_names", {})
     if isinstance(workflow_names, dict):
