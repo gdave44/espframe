@@ -3345,7 +3345,12 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
                 ".github/workflows/compile.yml",
                 errors,
             )
-        for prefix in ("firmware", "firmware/beta"):
+        public_manifest_dirs = []
+        for field in ("public_manifest", "public_beta_manifest"):
+            public_manifest = str(devices_by_slug.get(slug, {}).get(field, "")).strip()
+            if public_manifest:
+                public_manifest_dirs.append(Path(public_manifest).parent.as_posix())
+        for prefix in dict.fromkeys(public_manifest_dirs):
             require_contains(
                 docs_workflow,
                 f"if [ -f {prefix}/{slug}.manifest.json ]; then",
