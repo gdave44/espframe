@@ -75,6 +75,17 @@ def require_firmware_text_entity_shape(text: str, name: str, filename: str, erro
         require_contains(block, needle, f"{filename} text entity {name}", errors)
 
 
+def check_relative_path(value: object, label: str, errors: list[str]) -> str:
+    path = str(value or "").strip()
+    if not path:
+        errors.append(f"{label} is required")
+        return ""
+    if Path(path).is_absolute() or ".." in Path(path).parts:
+        errors.append(f"{label} has unsafe path: {path}")
+        return ""
+    return path
+
+
 def extract_js_json_var(text: str, var_name: str, errors: list[str]) -> object | None:
     match = re.search(rf"\bvar {re.escape(var_name)} = (.*?);", text)
     if not match:
