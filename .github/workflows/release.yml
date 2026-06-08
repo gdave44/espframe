@@ -10,9 +10,33 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  DEVICE_SLUGS: immich-frame
 
 jobs:
+  release-metadata:
+    name: Read Product Release Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      release_matrix: ${{ steps.product.outputs.release_matrix }}
+      device_slugs: ${{ steps.product.outputs.device_slugs }}
+      esphome_docker_image: ${{ steps.product.outputs.esphome_docker_image }}
+      esphome_version: ${{ steps.product.outputs.esphome_version }}
+      esphome_config_mount: ${{ steps.product.outputs.esphome_config_mount }}
+      esphome_docker_remove_flag: ${{ steps.product.outputs.esphome_docker_remove_flag }}
+      release_esphome_cache_dir: ${{ steps.product.outputs.release_esphome_cache_dir }}
+      release_esphome_cache_key_prefix: ${{ steps.product.outputs.release_esphome_cache_key_prefix }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+          sparse-checkout: |
+            scripts/product_config.py
+            product/espframe.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read product metadata
+        id: product
+        run: python3 scripts/product_config.py github-output >> "$GITHUB_OUTPUT"
+
   release-notes:
     name: Update Release Notes
     if: github.event_name == 'release'
@@ -37,16 +61,19 @@ jobs:
 
   build-firmware:
     name: Build ${{ matrix.slug }}
+    needs: release-metadata
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      ESPHOME_DOCKER_IMAGE: ${{ needs.release-metadata.outputs.esphome_docker_image }}
+      ESPHOME_VERSION: ${{ needs.release-metadata.outputs.esphome_version }}
+      ESPHOME_CONFIG_MOUNT: ${{ needs.release-metadata.outputs.esphome_config_mount }}
+      ESPHOME_DOCKER_REMOVE_FLAG: ${{ needs.release-metadata.outputs.esphome_docker_remove_flag }}
+      RELEASE_ESPHOME_CACHE_DIR: ${{ needs.release-metadata.outputs.release_esphome_cache_dir }}
+      RELEASE_ESPHOME_CACHE_KEY_PREFIX: ${{ needs.release-metadata.outputs.release_esphome_cache_key_prefix }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - slug: immich-frame
-            yaml: guition-esp32-p4-jc8012p4a1
-            build_name: immich-frame-10inch
-            chip: ESP32-P4
+      matrix: ${{ fromJson(needs.release-metadata.outputs.release_matrix) }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -55,10 +82,10 @@ jobs:
       - name: Cache ESPHome build
         uses: actions/cache@v5
         with:
-          path: builds/.esphome
-          key: esphome-release-${{ matrix.slug }}-${{ hashFiles('builds/*.yaml', 'common/**', 'devices/**', 'components/**') }}
+          path: ${{ needs.release-metadata.outputs.release_esphome_cache_dir }}
+          key: ${{ needs.release-metadata.outputs.release_esphome_cache_key_prefix }}-${{ matrix.slug }}-${{ hashFiles('builds/*.yaml', 'common/**', 'devices/**', 'components/**') }}
           restore-keys: |
-            esphome-release-${{ matrix.slug }}-
+            ${{ needs.release-metadata.outputs.release_esphome_cache_key_prefix }}-${{ matrix.slug }}-
 
       - name: Compile firmware
         env:
@@ -68,24 +95,24 @@ jobs:
             --slug "${{ matrix.slug }}" \
             --version "${VERSION}"
 
-          docker run --rm \
-            -v "${PWD}:/config" \
-            ghcr.io/esphome/esphome:2026.5.0 \
-            compile /config/builds/${{ matrix.yaml }}.factory.yaml
+          docker run ${ESPHOME_DOCKER_REMOVE_FLAG} \
+            -v "${PWD}:${ESPHOME_CONFIG_MOUNT}" \
+            "${ESPHOME_DOCKER_IMAGE}:${ESPHOME_VERSION}" \
+            compile "${ESPHOME_CONFIG_MOUNT}/builds/${{ matrix.yaml }}.factory.yaml"
 
       - name: Fix ESPHome cache permissions
         if: always()
         run: |
-          if [ -d builds/.esphome ]; then
-            sudo chown -R "$USER:$USER" builds/.esphome
-            chmod -R u+rwX builds/.esphome
+          if [ -d "${RELEASE_ESPHOME_CACHE_DIR}" ]; then
+            sudo chown -R "$USER:$USER" "${RELEASE_ESPHOME_CACHE_DIR}"
+            chmod -R u+rwX "${RELEASE_ESPHOME_CACHE_DIR}"
           fi
 
       - name: Collect firmware files and generate manifest
         env:
           VERSION: ${{ github.event.release.tag_name || github.ref_name }}
         run: |
-          BUILD_DIR="builds/.esphome/build/${{ matrix.build_name }}/.pioenvs/${{ matrix.build_name }}"
+          BUILD_DIR="${RELEASE_ESPHOME_CACHE_DIR}/build/${{ matrix.build_name }}/.pioenvs/${{ matrix.build_name }}"
           mkdir -p output
 
           if [ ! -f "${BUILD_DIR}/firmware.factory.bin" ]; then
@@ -124,7 +151,7 @@ jobs:
   publish:
     name: Publish to Release
     if: github.event_name == 'release'
-    needs: build-firmware
+    needs: [build-firmware, release-metadata]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -145,6 +172,7 @@ jobs:
       - name: Verify assembled release assets
         env:
           VERSION: ${{ github.event.release.tag_name }}
+          DEVICE_SLUGS: ${{ needs.release-metadata.outputs.device_slugs }}
         run: >-
           python3 scripts/firmware_release.py verify-directory
           --version "${VERSION}"
@@ -162,6 +190,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ github.event.release.tag_name }}
+          DEVICE_SLUGS: ${{ needs.release-metadata.outputs.device_slugs }}
         run: |
           mkdir -p published
           gh release download "${VERSION}" \

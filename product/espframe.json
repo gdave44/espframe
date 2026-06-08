@@ -693,6 +693,7 @@
         "deploy-docs": "Deploy Docs"
       },
       "release": {
+        "release-metadata": "Read Product Release Metadata",
         "release-notes": "Update Release Notes",
         "build-firmware": "Build ${{ matrix.slug }}",
         "publish": "Publish to Release"
@@ -701,7 +702,8 @@
     "github_workflow_job_dependencies": {
       "compile.compile": ["validate"],
       "docs.deploy-docs": ["build-docs", "download-firmware"],
-      "release.publish": ["build-firmware"]
+      "release.build-firmware": ["release-metadata"],
+      "release.publish": ["build-firmware", "release-metadata"]
     },
     "github_sparse_checkout_files": [
       "scripts/firmware_release.py",

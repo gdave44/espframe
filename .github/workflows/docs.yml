@@ -27,7 +27,6 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  DEVICE_SLUGS: immich-frame
 
 jobs:
   build-docs:
@@ -73,6 +72,9 @@ jobs:
             product/espframe.json
           sparse-checkout-cone-mode: false
 
+      - name: Load product firmware metadata
+        run: python3 scripts/product_config.py github-env >> "$GITHUB_ENV"
+
       - name: Set release metadata
         id: release-meta
         env:
@@ -88,24 +90,25 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          mkdir -p firmware
+          STABLE_MANIFEST_DIR=$(dirname "$DEFAULT_PUBLIC_MANIFEST")
+          mkdir -p "$STABLE_MANIFEST_DIR"
           gh release download "$RELEASE_TAG" \
             --pattern "*.factory.bin" \
             --pattern "*.ota.bin" \
-            --dir firmware \
+            --dir "$STABLE_MANIFEST_DIR" \
             --clobber
           for SLUG in $DEVICE_SLUGS; do
             gh release download "$RELEASE_TAG" \
               --pattern "${SLUG}.manifest.json" \
-              --dir firmware \
+              --dir "$STABLE_MANIFEST_DIR" \
               --clobber 2>/dev/null || true
           done
-          if [ -f firmware/immich-frame.manifest.json ]; then
-            cp firmware/immich-frame.manifest.json firmware/manifest.json
+          if [ -f "${STABLE_MANIFEST_DIR}/${DEFAULT_DEVICE_SLUG}.manifest.json" ]; then
+            cp "${STABLE_MANIFEST_DIR}/${DEFAULT_DEVICE_SLUG}.manifest.json" "$DEFAULT_PUBLIC_MANIFEST"
           else
             gh release download "$RELEASE_TAG" \
-              --pattern "manifest.json" \
-              --dir firmware \
+              --pattern "$(basename "$DEFAULT_PUBLIC_MANIFEST")" \
+              --dir "$STABLE_MANIFEST_DIR" \
               --clobber
           fi
 
@@ -117,24 +120,25 @@ jobs:
           BETA_TAG=$(gh release list --limit 20 --json tagName,isPrerelease \
             -q '[.[] | select(.isPrerelease)] | .[0].tagName // empty')
           if [ -n "$BETA_TAG" ]; then
-            mkdir -p firmware/beta
+            BETA_MANIFEST_DIR=$(dirname "$DEFAULT_PUBLIC_BETA_MANIFEST")
+            mkdir -p "$BETA_MANIFEST_DIR"
             gh release download "$BETA_TAG" \
               --pattern "*.factory.bin" \
               --pattern "*.ota.bin" \
-              --dir firmware/beta \
+              --dir "$BETA_MANIFEST_DIR" \
               --clobber 2>/dev/null || true
             for SLUG in $DEVICE_SLUGS; do
               gh release download "$BETA_TAG" \
                 --pattern "${SLUG}.manifest.json" \
-                --dir firmware/beta \
+                --dir "$BETA_MANIFEST_DIR" \
                 --clobber 2>/dev/null || true
             done
-            if [ -f firmware/beta/immich-frame.manifest.json ]; then
-              cp firmware/beta/immich-frame.manifest.json firmware/beta/manifest.json
+            if [ -f "${BETA_MANIFEST_DIR}/${DEFAULT_DEVICE_SLUG}.manifest.json" ]; then
+              cp "${BETA_MANIFEST_DIR}/${DEFAULT_DEVICE_SLUG}.manifest.json" "$DEFAULT_PUBLIC_BETA_MANIFEST"
             else
               gh release download "$BETA_TAG" \
-                --pattern "manifest.json" \
-                --dir firmware/beta \
+                --pattern "$(basename "$DEFAULT_PUBLIC_BETA_MANIFEST")" \
+                --dir "$BETA_MANIFEST_DIR" \
                 --clobber 2>/dev/null || true
             fi
           fi
@@ -168,6 +172,9 @@ jobs:
             product/espframe.json
           sparse-checkout-cone-mode: false
 
+      - name: Load product docs metadata
+        run: python3 scripts/product_config.py github-env >> "$GITHUB_ENV"
+
       - name: Download docs artifact
         uses: actions/download-artifact@v8
         with:
@@ -196,7 +203,7 @@ jobs:
         run: >-
           python3 scripts/firmware_release.py verify-pages
           --version "${{ needs.download-firmware.outputs.release_tag }}"
-          --base-url "https://jtenniswood.github.io/espframe"
+          --base-url "$PUBLIC_BASE_URL"
           --slugs $DEVICE_SLUGS
           --retries 10
           --delay 15

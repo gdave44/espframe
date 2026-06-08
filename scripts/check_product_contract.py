@@ -50,6 +50,7 @@ from product_config import (
 
 
 SETTING_DOMAINS = {"number", "select", "switch", "text"}
+DOCS_TABLE_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 def require_firmware_text_entity_shape(text: str, name: str, filename: str, errors: list[str]) -> None:
@@ -2931,7 +2932,8 @@ def check_public_manifest_urls(product: dict, errors: list[str]) -> None:
             ("docs/backup.md", backup_docs),
         ):
             require_contains(text, url, filename, errors)
-    require_contains(docs_workflow, f'--base-url "{base_url}"', ".github/workflows/docs.yml", errors)
+    require_contains(docs_workflow, "PUBLIC_BASE_URL", ".github/workflows/docs.yml", errors)
+    require_contains(docs_workflow, '--base-url "$PUBLIC_BASE_URL"', ".github/workflows/docs.yml", errors)
 
     urls_by_slug = device_public_manifest_urls(product)
     for device in product["devices"]:
@@ -3283,7 +3285,14 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
                 value = str(raw_value).strip()
                 if name and value:
                     require_contains(text, f"{name}: {value}", label, errors)
-        require_contains(text, f"DEVICE_SLUGS: {expected_slugs}", label, errors)
+        if label == ".github/workflows/release.yml":
+            require_contains(text, "device_slugs: ${{ steps.product.outputs.device_slugs }}", label, errors)
+            require_contains(text, "DEVICE_SLUGS: ${{ needs.release-metadata.outputs.device_slugs }}", label, errors)
+        else:
+            require_contains(text, "python3 scripts/product_config.py github-env >> \"$GITHUB_ENV\"", label, errors)
+            require_contains(text, "$DEVICE_SLUGS", label, errors)
+        if f"DEVICE_SLUGS: {expected_slugs}" in text:
+            errors.append(f"{label} must read DEVICE_SLUGS from product metadata, not a literal device list")
         if sparse_checkout_files:
             require_contains(text, "sparse-checkout: |", label, errors)
             for path in sparse_checkout_files:
@@ -3352,17 +3361,18 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
             require_contains(release_workflow, needle, ".github/workflows/release.yml", errors)
     if release_esphome_cache_dir:
         for needle in (
-            f"path: {release_esphome_cache_dir}",
-            f"if [ -d {release_esphome_cache_dir} ]; then",
-            f"sudo chown -R \"$USER:$USER\" {release_esphome_cache_dir}",
-            f"chmod -R u+rwX {release_esphome_cache_dir}",
-            f"BUILD_DIR=\"{release_esphome_cache_dir}/build/${{{{ matrix.build_name }}}}/.pioenvs/${{{{ matrix.build_name }}}}\"",
+            "release_esphome_cache_dir: ${{ steps.product.outputs.release_esphome_cache_dir }}",
+            "path: ${{ needs.release-metadata.outputs.release_esphome_cache_dir }}",
+            'if [ -d "${RELEASE_ESPHOME_CACHE_DIR}" ]; then',
+            'sudo chown -R "$USER:$USER" "${RELEASE_ESPHOME_CACHE_DIR}"',
+            'chmod -R u+rwX "${RELEASE_ESPHOME_CACHE_DIR}"',
+            'BUILD_DIR="${RELEASE_ESPHOME_CACHE_DIR}/build/${{ matrix.build_name }}/.pioenvs/${{ matrix.build_name }}"',
         ):
             require_contains(release_workflow, needle, ".github/workflows/release.yml", errors)
     if release_esphome_cache_key_prefix:
         require_contains(
             release_workflow,
-            f"key: {release_esphome_cache_key_prefix}-${{{{ matrix.slug }}}}-",
+            "release_esphome_cache_key_prefix: ${{ steps.product.outputs.release_esphome_cache_key_prefix }}",
             ".github/workflows/release.yml",
             errors,
         )
@@ -3374,7 +3384,7 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         )
         require_contains(
             release_workflow,
-            f"            {release_esphome_cache_key_prefix}-${{{{ matrix.slug }}}}-",
+            "${{ needs.release-metadata.outputs.release_esphome_cache_key_prefix }}-${{ matrix.slug }}-",
             ".github/workflows/release.yml",
             errors,
         )
@@ -3389,7 +3399,11 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
     for pattern in binary_download_patterns:
         require_contains(docs_workflow, f'--pattern "{pattern}"', ".github/workflows/docs.yml", errors)
     for pattern in manifest_download_patterns:
-        require_contains(docs_workflow, f'--pattern "{pattern}"', ".github/workflows/docs.yml", errors)
+        if pattern == "manifest.json":
+            require_contains(docs_workflow, 'basename "$DEFAULT_PUBLIC_MANIFEST"', ".github/workflows/docs.yml", errors)
+            require_contains(docs_workflow, 'basename "$DEFAULT_PUBLIC_BETA_MANIFEST"', ".github/workflows/docs.yml", errors)
+        else:
+            require_contains(docs_workflow, f'--pattern "{pattern}"', ".github/workflows/docs.yml", errors)
     for pattern in uploaded_verify_patterns:
         require_contains(release_workflow, f'--pattern "{pattern}"', ".github/workflows/release.yml", errors)
     if release_download_clobber is True:
@@ -3432,7 +3446,8 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         require_contains(docs_workflow, f"path: {docs_dist_output_path}", ".github/workflows/docs.yml", errors)
     if docs_firmware_artifact_name:
         require_contains(docs_workflow, f"name: {docs_firmware_artifact_name}", ".github/workflows/docs.yml", errors)
-        require_contains(docs_workflow, f"mkdir -p {docs_firmware_artifact_name}", ".github/workflows/docs.yml", errors)
+        if f"mkdir -p {docs_firmware_artifact_name}" not in docs_workflow:
+            require_contains(docs_workflow, 'mkdir -p "$STABLE_MANIFEST_DIR"', ".github/workflows/docs.yml", errors)
         require_contains(docs_workflow, f"path: {docs_firmware_artifact_name}/", ".github/workflows/docs.yml", errors)
         if docs_deploy_path:
             require_contains(
@@ -3535,7 +3550,7 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         "gh release view --json tagName",
         "python3 scripts/firmware_release.py verify-directory",
         "python3 scripts/firmware_release.py verify-pages",
-        f'--base-url "{public_base_url(product)}"',
+        '--base-url "$PUBLIC_BASE_URL"',
     ]
     if isinstance(prerelease_lookup_limit, int) and not isinstance(prerelease_lookup_limit, bool):
         docs_release_lookup_needles.append(f"gh release list --limit {prerelease_lookup_limit} --json tagName,isPrerelease")
@@ -3549,22 +3564,27 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         return
 
     devices_by_slug = {str(device.get("slug", "")).strip(): device for device in product["devices"]}
+    require_contains(
+        release_workflow,
+        "release_matrix: ${{ steps.product.outputs.release_matrix }}",
+        ".github/workflows/release.yml",
+        errors,
+    )
+    require_contains(
+        release_workflow,
+        "matrix: ${{ fromJson(needs.release-metadata.outputs.release_matrix) }}",
+        ".github/workflows/release.yml",
+        errors,
+    )
     for release_device in release_devices:
         slug = release_device["slug"]
         build_yaml = str(devices_by_slug.get(slug, {}).get("build_yaml", "")).strip()
         local_yaml = str(devices_by_slug.get(slug, {}).get("local_yaml", "")).strip()
         device_dir = str(Path(local_yaml).parent) if local_yaml else ""
-        for needle in (
-            f"- slug: {slug}",
-            f"yaml: {release_device['yaml']}",
-            f"build_name: {release_device['build_name']}",
-            f"chip: {release_device['chip']}",
-        ):
-            require_contains(release_workflow, needle, ".github/workflows/release.yml", errors)
         if esphome_config_mount:
             require_contains(
                 release_workflow,
-                f"compile {esphome_config_mount}/builds/${{{{ matrix.yaml }}}}.factory.yaml",
+                'compile "${ESPHOME_CONFIG_MOUNT}/builds/${{ matrix.yaml }}.factory.yaml"',
                 ".github/workflows/release.yml",
                 errors,
             )
@@ -3587,21 +3607,23 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
             if public_manifest:
                 public_manifest_dirs.append(Path(public_manifest).parent.as_posix())
         for prefix in dict.fromkeys(public_manifest_dirs):
+            env_name = "DEFAULT_PUBLIC_BETA_MANIFEST" if prefix.endswith("/beta") else "DEFAULT_PUBLIC_MANIFEST"
+            dir_name = "BETA_MANIFEST_DIR" if prefix.endswith("/beta") else "STABLE_MANIFEST_DIR"
             require_contains(
                 docs_workflow,
-                f"mkdir -p {prefix}",
+                f'{dir_name}=$(dirname "${env_name}")',
                 ".github/workflows/docs.yml",
                 errors,
             )
             require_contains(
                 docs_workflow,
-                f"if [ -f {prefix}/{slug}.manifest.json ]; then",
+                f'if [ -f "${{{dir_name}}}/${{DEFAULT_DEVICE_SLUG}}.manifest.json" ]; then',
                 ".github/workflows/docs.yml",
                 errors,
             )
             require_contains(
                 docs_workflow,
-                f"cp {prefix}/{slug}.manifest.json {prefix}/manifest.json",
+                f'cp "${{{dir_name}}}/${{DEFAULT_DEVICE_SLUG}}.manifest.json" "${env_name}"',
                 ".github/workflows/docs.yml",
                 errors,
             )
@@ -3731,7 +3753,7 @@ def check_factory_firmware_metadata(product: dict, errors: list[str]) -> None:
             )
             require_contains(
                 release_workflow,
-                f"compile {esphome_config_mount}/builds/${{{{ matrix.yaml }}}}.factory.yaml",
+                'compile "${ESPHOME_CONFIG_MOUNT}/builds/${{ matrix.yaml }}.factory.yaml"',
                 ".github/workflows/release.yml",
                 errors,
             )
@@ -3896,7 +3918,6 @@ def check_esphome_version(product: dict, errors: list[str]) -> None:
 
     required_refs = [
         ROOT / ".github" / "workflows" / "compile.yml",
-        ROOT / ".github" / "workflows" / "release.yml",
         ROOT / "README.md",
         ROOT / "docs" / "install.md",
         ROOT / "docs" / "manual-setup.md",
@@ -3905,7 +3926,7 @@ def check_esphome_version(product: dict, errors: list[str]) -> None:
         text = read(path, errors)
         require_contains(text, version, rel(path), errors)
 
-    for path in (ROOT / ".github" / "workflows" / "compile.yml", ROOT / ".github" / "workflows" / "release.yml", ROOT / "README.md"):
+    for path in (ROOT / ".github" / "workflows" / "compile.yml", ROOT / "README.md"):
         text = read(path, errors)
         if docker_image:
             require_contains(text, f"{docker_image}:{version}", rel(path), errors)
@@ -3913,6 +3934,18 @@ def check_esphome_version(product: dict, errors: list[str]) -> None:
             require_contains(text, f'-v "${{PWD}}:{config_mount}"', rel(path), errors)
         if remove_container is True:
             require_contains(text, "docker run --rm", rel(path), errors)
+
+    release_workflow = read(ROOT / ".github" / "workflows" / "release.yml", errors)
+    for needle in (
+        "esphome_docker_image: ${{ steps.product.outputs.esphome_docker_image }}",
+        "esphome_version: ${{ steps.product.outputs.esphome_version }}",
+        "esphome_config_mount: ${{ steps.product.outputs.esphome_config_mount }}",
+        "esphome_docker_remove_flag: ${{ steps.product.outputs.esphome_docker_remove_flag }}",
+        '"${ESPHOME_DOCKER_IMAGE}:${ESPHOME_VERSION}"',
+        '-v "${PWD}:${ESPHOME_CONFIG_MOUNT}"',
+        "docker run ${ESPHOME_DOCKER_REMOVE_FLAG}",
+    ):
+        require_contains(release_workflow, needle, ".github/workflows/release.yml", errors)
 
 
 def check_workflows(product: dict, errors: list[str]) -> None:

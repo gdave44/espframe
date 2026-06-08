@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -50,6 +51,21 @@ def devices_by_slug() -> dict[str, dict[str, Any]]:
             raise RuntimeError(f"Duplicate product device slug: {slug}")
         devices[slug] = device
     return devices
+
+
+def device_slugs(product: dict[str, Any] | None = None) -> list[str]:
+    data = product if product is not None else load_product()
+    slugs = [str(device.get("slug", "")).strip() for device in data["devices"]]
+    if any(not slug for slug in slugs):
+        raise RuntimeError("Every product device needs a slug")
+    return slugs
+
+
+def default_device_slug(product: dict[str, Any] | None = None) -> str:
+    slugs = device_slugs(product)
+    if not slugs:
+        raise RuntimeError("Product metadata must contain at least one device")
+    return slugs[0]
 
 
 def public_base_url(product: dict[str, Any] | None = None) -> str:
@@ -105,15 +121,96 @@ def release_matrix_devices(product: dict[str, Any] | None = None) -> list[dict[s
     result: list[dict[str, str]] = []
     for device in data["devices"]:
         build_yaml = str(device["build_yaml"])
+        build_name = str(device.get("esphome_name", "")).strip() or build_yaml_device_name(build_yaml)
         result.append(
             {
                 "slug": str(device["slug"]),
                 "yaml": build_yaml_stem(build_yaml),
-                "build_name": build_yaml_device_name(build_yaml),
+                "build_name": build_name,
                 "chip": str(device["chip"]),
             }
         )
     return result
+
+
+def github_workflow_metadata(product: dict[str, Any] | None = None) -> dict[str, str]:
+    data = product if product is not None else load_product()
+    project = data["project"]
+    first_device = data["devices"][0]
+    remove_container = project.get("esphome_docker_remove_container")
+    return {
+        "DEVICE_SLUGS": " ".join(device_slugs(data)),
+        "DEFAULT_DEVICE_SLUG": default_device_slug(data),
+        "DEFAULT_PUBLIC_MANIFEST": str(first_device.get("public_manifest", "")).strip(),
+        "DEFAULT_PUBLIC_BETA_MANIFEST": str(first_device.get("public_beta_manifest", "")).strip(),
+        "PUBLIC_BASE_URL": public_base_url(data),
+        "ESPHOME_DOCKER_IMAGE": str(project.get("esphome_docker_image", "")).strip().rstrip(":"),
+        "ESPHOME_VERSION": str(project.get("esphome_version", "")).strip(),
+        "ESPHOME_CONFIG_MOUNT": str(project.get("esphome_config_mount", "")).strip(),
+        "ESPHOME_DOCKER_REMOVE_FLAG": "--rm" if remove_container is True else "",
+        "RELEASE_ESPHOME_CACHE_DIR": str(project.get("release_esphome_cache_dir", "")).strip(),
+        "RELEASE_ESPHOME_CACHE_KEY_PREFIX": str(project.get("release_esphome_cache_key_prefix", "")).strip(),
+        "RELEASE_ESPHOME_CACHE_HASH_FILES": ",".join(
+            str(path).strip()
+            for path in project.get("release_esphome_cache_hash_files", [])
+            if str(path).strip()
+        ),
+    }
+
+
+def _print_github_env(metadata: dict[str, str]) -> None:
+    for name, value in metadata.items():
+        if "\n" in value:
+            raise RuntimeError(f"Workflow metadata value {name} must not contain newlines")
+        print(f"{name}={value}")
+
+
+def _print_github_outputs(product: dict[str, Any]) -> None:
+    metadata = github_workflow_metadata(product)
+    outputs = {
+        "release_matrix": json.dumps({"include": release_matrix_devices(product)}, separators=(",", ":")),
+        "device_slugs": metadata["DEVICE_SLUGS"],
+        "default_device_slug": metadata["DEFAULT_DEVICE_SLUG"],
+        "default_public_manifest": metadata["DEFAULT_PUBLIC_MANIFEST"],
+        "default_public_beta_manifest": metadata["DEFAULT_PUBLIC_BETA_MANIFEST"],
+        "public_base_url": metadata["PUBLIC_BASE_URL"],
+        "esphome_docker_image": metadata["ESPHOME_DOCKER_IMAGE"],
+        "esphome_version": metadata["ESPHOME_VERSION"],
+        "esphome_config_mount": metadata["ESPHOME_CONFIG_MOUNT"],
+        "esphome_docker_remove_flag": metadata["ESPHOME_DOCKER_REMOVE_FLAG"],
+        "release_esphome_cache_dir": metadata["RELEASE_ESPHOME_CACHE_DIR"],
+        "release_esphome_cache_key_prefix": metadata["RELEASE_ESPHOME_CACHE_KEY_PREFIX"],
+    }
+    for name, value in outputs.items():
+        if "\n" in value:
+            raise RuntimeError(f"Workflow output value {name} must not contain newlines")
+        print(f"{name}={value}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    command = args[0] if args else ""
+    product = load_product()
+
+    if command == "device-slugs":
+        print(" ".join(device_slugs(product)))
+        return 0
+    if command == "default-device-slug":
+        print(default_device_slug(product))
+        return 0
+    if command == "release-matrix":
+        print(json.dumps({"include": release_matrix_devices(product)}, separators=(",", ":")))
+        return 0
+    if command == "github-env":
+        _print_github_env(github_workflow_metadata(product))
+        return 0
+    if command == "github-output":
+        _print_github_outputs(product)
+        return 0
+
+    valid = "device-slugs, default-device-slug, release-matrix, github-env, github-output"
+    print(f"Usage: product_config.py <{valid}>", file=sys.stderr)
+    return 2
 
 
 def settings() -> list[dict[str, Any]]:
@@ -323,3 +420,7 @@ def web_initial_fetch_keys(product_settings: list[dict[str, Any]] | None = None)
         if metadata.get("fetch"):
             add(key)
     return keys
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
