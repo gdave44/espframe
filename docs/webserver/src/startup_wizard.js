@@ -34,25 +34,19 @@
       var card = el("div", "card fade-in");
       card.innerHTML = "<h3>Connection</h3>";
 
-      var f1 = field("Immich Server URL");
-      var urlInput = input("url", S.immich_url, "http://192.168.0.1:2283");
-      f1.appendChild(urlInput);
-      card.appendChild(f1);
+      var urlField = makeConnectionUrlField(S.immich_url);
+      var urlInput = urlField.input;
+      card.appendChild(urlField.field);
 
       var f2 = field("API Key");
-      var grp = el("div", "input-group");
-      var keyInput = input("password", S.api_key, "Your Immich API key");
-      var showBtn = el("button", "btn btn-secondary");
-      showBtn.textContent = "Show";
-      showBtn.type = "button";
-      showBtn.onclick = function () {
-        var isPass = keyInput.type === "password";
-        keyInput.type = isPass ? "text" : "password";
-        showBtn.textContent = isPass ? "Hide" : "Show";
-      };
-      grp.appendChild(keyInput);
-      grp.appendChild(showBtn);
-      f2.appendChild(grp);
+      var keyControl = makeApiKeyInputGroup({
+        type: "password",
+        value: S.api_key,
+        placeholder: "Your Immich API key",
+        toggleVisibility: true
+      });
+      var keyInput = keyControl.input;
+      f2.appendChild(keyControl.group);
       card.appendChild(f2);
 
       var nav = el("div", "wizard-nav");
@@ -64,22 +58,9 @@
         if (!u || !k) return;
         nextBtn.disabled = true;
         nextBtn.textContent = "Saving\u2026";
-        saveConnectionValue(endpoints.immich_url, u, true)
-          .then(function () {
-            return saveConnectionValue(endpoints.api_key, k, false);
-          })
-          .then(function () {
-            return Promise.all([
-              safeGet(endpoints.immich_url),
-              safeGet(endpoints.api_key)
-            ]);
-          })
-          .then(function (res) {
-            var savedUrl = normalizeImmichUrl((res[0] && (res[0].value || res[0].state)) || "");
-            var savedKey = (res[1] && (res[1].value || res[1].state)) || "";
-            if (savedUrl !== u || !savedKey) throw new Error("verify_failed");
-            S.immich_url = u;
-            S.api_key = k;
+        saveAndVerifyConnection(u, k)
+          .then(function (connection) {
+            urlInput.value = connection.url;
             step = 2;
             showStep();
           })

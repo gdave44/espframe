@@ -17,22 +17,24 @@
       clearTimeout(connStatus._t);
     }
 
-    var f1 = field("Immich Server URL");
-    var urlInput = input("url", S.immich_url, "http://192.168.0.1:2283");
+    var urlField = makeConnectionUrlField(S.immich_url);
+    var urlInput = urlField.input;
     urlInput.onchange = function () {
       var normalized = normalizeImmichUrl(urlInput.value);
-      postTextValueSet(endpoints.immich_url + "/set", normalized, true).then(function (r) {
-        if (r && r.ok) {
-          S.immich_url = normalized;
-          urlInput.value = normalized;
-          showSaved("URL saved");
-        } else {
-          showConnectionError("Failed to save URL");
-        }
+      saveAndVerifyConnectionValue(
+        endpoints.immich_url,
+        normalized,
+        true,
+        function (saved) { return normalizeImmichUrl(saved) === normalized; }
+      ).then(function () {
+        S.immich_url = normalized;
+        urlInput.value = normalized;
+        showSaved("URL saved");
+      }).catch(function () {
+        showConnectionError("Failed to save URL");
       });
     };
-    f1.appendChild(urlInput);
-    connBody.appendChild(f1);
+    connBody.appendChild(urlField.field);
 
     var f2 = field("API Key");
     var keyConfigured = S.api_key && S.api_key.length > 0;
@@ -40,52 +42,41 @@
 
     function showKeyMasked() {
       keyWrap.innerHTML = "";
-      var row = el("div", "input-group");
-      var mask = el("div");
-      mask.className = "key-mask";
-      mask.textContent = "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
-      var cb = el("button", "btn btn-secondary");
-      cb.textContent = "Change";
-      cb.type = "button";
-      cb.onclick = function () {
+      keyWrap.appendChild(makeMaskedApiKeyRow(function () {
         keyWrap.innerHTML = "";
         keyWrap.appendChild(makeKeyInput());
-      };
-      row.appendChild(mask);
-      row.appendChild(cb);
-      keyWrap.appendChild(row);
+      }));
     }
 
     function makeKeyInput() {
-      var grp = el("div", "input-group");
-      var keyInput = input("text", "", "Paste your Immich API key");
-      var saveBtn = el("button", "btn btn-primary");
-      saveBtn.textContent = "Save";
-      saveBtn.type = "button";
-      saveBtn.onclick = function () {
-        var v = keyInput.value.trim();
-        if (!v) return;
-        saveBtn.disabled = true;
-        saveBtn.textContent = "Saving\u2026";
-        saveConnectionValue(endpoints.api_key, v, false)
-          .then(function () {
-            return safeGet(endpoints.api_key);
-          })
-          .then(function (resp) {
-            var saved = (resp && (resp.value || resp.state)) || "";
-            if (!saved) throw new Error("verify_failed");
+      var keyControl = makeApiKeyInputGroup({
+        type: "text",
+        value: "",
+        placeholder: "Paste your Immich API key",
+        buttonText: "Save",
+        buttonClass: "btn btn-primary",
+        onButtonClick: function (keyInput, saveBtn) {
+          var v = keyInput.value.trim();
+          if (!v) return;
+          saveBtn.disabled = true;
+          saveBtn.textContent = "Saving\u2026";
+          saveAndVerifyConnectionValue(
+            endpoints.api_key,
+            v,
+            false,
+            function (saved) { return !!saved; }
+          ).then(function () {
+            S.api_key = v;
             showSaved("API key saved");
             showKeyMasked();
-          })
-          .catch(function () {
+          }).catch(function () {
             saveBtn.disabled = false;
             saveBtn.textContent = "Save";
             showConnectionError("Failed to save API key");
           });
-      };
-      grp.appendChild(keyInput);
-      grp.appendChild(saveBtn);
-      return grp;
+        }
+      });
+      return keyControl.group;
     }
 
     if (keyConfigured) {

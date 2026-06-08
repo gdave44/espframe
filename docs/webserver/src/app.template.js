@@ -153,6 +153,97 @@
     });
   }
 
+  function connectionResponseValue(resp) {
+    return (resp && (resp.value || resp.state)) || "";
+  }
+
+  function saveAndVerifyConnectionValue(path, value, useQueryFallback, isSaved) {
+    return saveConnectionValue(path, value, useQueryFallback)
+      .then(function () {
+        return safeGet(path);
+      })
+      .then(function (resp) {
+        var saved = connectionResponseValue(resp);
+        if (isSaved && !isSaved(saved)) throw new Error("verify_failed");
+        return saved;
+      });
+  }
+
+  function saveAndVerifyConnection(url, key) {
+    var normalizedUrl = normalizeImmichUrl(url);
+    var apiKey = String(key || "").trim();
+    if (!normalizedUrl || !apiKey) return Promise.reject(new Error("missing_connection"));
+    return saveConnectionValue(endpoints.immich_url, normalizedUrl, true)
+      .then(function () {
+        return saveConnectionValue(endpoints.api_key, apiKey, false);
+      })
+      .then(function () {
+        return Promise.all([
+          safeGet(endpoints.immich_url),
+          safeGet(endpoints.api_key)
+        ]);
+      })
+      .then(function (res) {
+        var savedUrl = normalizeImmichUrl(connectionResponseValue(res[0]));
+        var savedKey = connectionResponseValue(res[1]);
+        if (savedUrl !== normalizedUrl || !savedKey) throw new Error("verify_failed");
+        S.immich_url = normalizedUrl;
+        S.api_key = apiKey;
+        return { url: normalizedUrl, key: apiKey };
+      });
+  }
+
+  function makeConnectionUrlField(value) {
+    var f = field("Immich Server URL");
+    var urlInput = input("url", value, "http://192.168.0.1:2283");
+    f.appendChild(urlInput);
+    return { field: f, input: urlInput };
+  }
+
+  function makeApiKeyInputGroup(options) {
+    var opts = options || {};
+    var grp = el("div", "input-group");
+    var keyInput = input(opts.type || "text", opts.value || "", opts.placeholder || "Your Immich API key");
+    var button = null;
+    grp.appendChild(keyInput);
+    if (opts.toggleVisibility) {
+      button = el("button", "btn btn-secondary");
+      button.textContent = "Show";
+      button.type = "button";
+      button.onclick = function () {
+        var isPass = keyInput.type === "password";
+        keyInput.type = isPass ? "text" : "password";
+        button.textContent = isPass ? "Hide" : "Show";
+      };
+      grp.appendChild(button);
+    } else if (opts.buttonText) {
+      button = el("button", opts.buttonClass || "btn btn-primary");
+      button.textContent = opts.buttonText;
+      button.type = "button";
+      if (opts.onButtonClick) {
+        button.onclick = function () {
+          opts.onButtonClick(keyInput, button);
+        };
+      }
+      grp.appendChild(button);
+    }
+    return { group: grp, input: keyInput, button: button };
+  }
+
+  function makeMaskedApiKeyRow(onChange) {
+    var row = el("div", "input-group");
+    var mask = el("div");
+    var cb = el("button", "btn btn-secondary");
+    mask.className = "key-mask";
+    mask.textContent = "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+    cb.textContent = "Change";
+    cb.type = "button";
+    cb.onclick = onChange;
+    row.appendChild(mask);
+    row.appendChild(cb);
+    return row;
+  }
+
   function saveNtpServer(key, value) {
     var server = normalizeNtpServer(value);
     S[key] = server;
