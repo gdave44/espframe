@@ -523,7 +523,7 @@ function runChrome(args, timeoutMs) {
 
     child.on("close", (status, signal) => {
       clearTimeout(timer);
-      resolve({ status, signal, timedOut, stdout, stderr });
+      resolve({ status, signal, stdout, stderr });
     });
   });
 }
