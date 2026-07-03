@@ -37,9 +37,9 @@ globals:
 
 esphome:
   on_boot:
-    priority: -250
-    then:
-      - script.execute: screen_schedule_boot_guard
+    - priority: -250
+      then:
+        - script.execute: screen_schedule_boot_guard
 
 # =============================================================================
 # USER-CONFIGURABLE ENTITIES
