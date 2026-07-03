@@ -44,6 +44,12 @@ if (!chromePath) {
   throw new Error("Google Chrome or Chromium is required for browser smoke tests");
 }
 
+function chromeSandboxArgs() {
+  if (process.platform !== "linux") return [];
+  if (typeof process.getuid !== "function" || process.getuid() !== 0) return [];
+  return ["--no-sandbox"];
+}
+
 const validBackupFixture = {
   version: 1,
   connection: {
@@ -573,6 +579,7 @@ async function runScenario(scenario) {
       "--no-first-run",
       "--no-default-browser-check",
       "--no-service-autorun",
+      ...chromeSandboxArgs(),
       `--user-data-dir=${userDataDir}`,
       `--window-size=${scenario.width},${scenario.height}`,
       "--virtual-time-budget=16000",
