@@ -23,6 +23,7 @@ function findExecutable(name) {
 
 function resolveChromePath() {
   const candidates = [
+    process.env.CHROME_BIN,
     process.env.CHROME_PATH,
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
@@ -38,10 +39,24 @@ function resolveChromePath() {
   return candidates.find((candidate) => candidate && fs.existsSync(candidate)) || "";
 }
 
+const chromePathCandidates = [
+  process.env.CHROME_BIN,
+  process.env.CHROME_PATH,
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+  "/usr/bin/chromium",
+  "/usr/bin/chromium-browser",
+  "google-chrome",
+  "google-chrome-stable",
+  "chromium",
+  "chromium-browser",
+].filter(Boolean);
 const chromePath = resolveChromePath();
 
 if (!chromePath) {
-  throw new Error("Google Chrome or Chromium is required for browser smoke tests");
+  throw new Error(`Google Chrome or Chromium is required for browser smoke tests. Checked: ${chromePathCandidates.join(", ")}`);
 }
 
 function chromeSandboxArgs() {
