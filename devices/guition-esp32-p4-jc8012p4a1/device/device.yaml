@@ -66,6 +66,7 @@ api:
 
 logger:
   level: ${log_level}
+  hardware_uart: UART0
   logs:
     component: WARN
     remote_image: WARN

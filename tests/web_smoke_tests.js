@@ -5,14 +5,43 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const root = path.resolve(__dirname, "..");
-const chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const appSource = fs.readFileSync(path.join(root, "docs/public/webserver/app.js"), "utf8");
 const product = JSON.parse(fs.readFileSync(path.join(root, "product/espframe.json"), "utf8"));
 const expectedBackupGroups = product.project.backup_export_groups;
 const expectedBackupFields = product.project.backup_export_fields;
 
-if (!fs.existsSync(chromePath)) {
-  throw new Error("Google Chrome is required for browser smoke tests");
+function findExecutable(name) {
+  const pathDirs = String(process.env.PATH || "")
+    .split(path.delimiter)
+    .filter(Boolean);
+  for (const dir of pathDirs) {
+    const candidate = path.join(dir, name);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return "";
+}
+
+function resolveChromePath() {
+  const candidates = [
+    process.env.CHROME_PATH,
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    findExecutable("google-chrome"),
+    findExecutable("google-chrome-stable"),
+    findExecutable("chromium"),
+    findExecutable("chromium-browser"),
+  ];
+  return candidates.find((candidate) => candidate && fs.existsSync(candidate)) || "";
+}
+
+const chromePath = resolveChromePath();
+
+if (!chromePath) {
+  throw new Error("Google Chrome or Chromium is required for browser smoke tests");
 }
 
 const validBackupFixture = {
