@@ -503,6 +503,32 @@ inline uint32_t parse_immich_metadata_total(const std::string &body) {
   return total > 0 ? static_cast<uint32_t>(total) : 0;
 }
 
+inline bool immich_metadata_total_looks_page_limited(const std::string &body,
+                                                     uint16_t page_size) {
+  if (page_size == 0) return false;
+  auto doc = esphome::json::parse_json(body);
+  if (doc.isNull() || !doc.is<JsonObject>()) return false;
+
+  JsonObject root = doc.as<JsonObject>();
+  JsonObject assets = root["assets"].as<JsonObject>();
+  if (assets.isNull()) return false;
+
+  int reported_total = 0;
+  if (assets["total"].is<int>()) reported_total = assets["total"].as<int>();
+  if (reported_total <= 0 && assets["count"].is<int>())
+    reported_total = assets["count"].as<int>();
+  if (reported_total <= 0) return false;
+
+  JsonArray items = assets["items"].as<JsonArray>();
+  if (items.isNull() && assets["assets"].is<JsonArray>()) {
+    items = assets["assets"].as<JsonArray>();
+  }
+  size_t item_count = items.isNull() ? 0 : items.size();
+  bool next_page_present = !assets["nextPage"].isNull();
+  return static_cast<uint32_t>(reported_total) <= page_size &&
+         (next_page_present || item_count >= page_size);
+}
+
 inline std::string parse_immich_metadata_asset(const std::string &body,
                                                const std::string &base_url,
                                                ImmichAssetMeta *out_meta,
