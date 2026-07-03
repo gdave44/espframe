@@ -554,6 +554,9 @@ function runChrome(args, timeoutMs) {
     });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    let timer = null;
+    let forceResolveTimer = null;
     let timedOut = false;
 
     child.stdout.setEncoding("utf8");
@@ -565,22 +568,34 @@ function runChrome(args, timeoutMs) {
       stderr += chunk;
     });
 
-    const timer = setTimeout(() => {
+    function finish(result) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      clearTimeout(forceResolveTimer);
+      resolve(result);
+    }
+
+    timer = setTimeout(() => {
       timedOut = true;
+      stderr += `\nChrome timed out after ${timeoutMs}ms`;
       if (useProcessGroup) {
         try {
           process.kill(-child.pid, "SIGKILL");
-          return;
         } catch (_) {
           // Fall back to killing the browser wrapper if the process group is already gone.
+          child.kill("SIGKILL");
         }
+      } else {
+        child.kill("SIGKILL");
       }
-      child.kill("SIGKILL");
+      forceResolveTimer = setTimeout(() => {
+        finish({ status: null, signal: "timeout", stdout, stderr, timedOut });
+      }, 1000);
     }, timeoutMs);
 
     child.on("close", (status, signal) => {
-      clearTimeout(timer);
-      resolve({ status, signal, stdout, stderr, timedOut });
+      finish({ status, signal, stdout, stderr, timedOut });
     });
   });
 }
