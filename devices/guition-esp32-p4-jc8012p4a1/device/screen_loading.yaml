@@ -15,6 +15,36 @@ globals:
     type: bool
     initial_value: 'true'
 
+script:
+  - id: finish_startup_screen
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            lambda: 'return wifi::global_wifi_component->has_sta();'
+          then:
+            - lambda: |-
+                ESP_LOGI("startup", "Saved WiFi found; waiting for connection before leaving loading screen");
+                lv_bar_set_value(id(loading_progress_bar), 50, LV_ANIM_OFF);
+                lv_label_set_text(id(loading_status_label), "Connecting to WiFi");
+            - delay: 10s
+            - lambda: 'id(boot_grace_period) = false;'
+            - if:
+                condition:
+                  not:
+                    wifi.connected:
+                then:
+                  - lambda: 'ESP_LOGI("startup", "WiFi did not connect during startup; showing WiFi setup");'
+                  - lvgl.page.show: wifi_setup_page
+                  - script.execute: setup_screen_dim
+          else:
+            - lambda: |-
+                ESP_LOGI("startup", "No saved WiFi found; showing WiFi setup");
+                id(boot_grace_period) = false;
+            - lvgl.page.show: wifi_setup_page
+            - script.execute: setup_screen_dim
+
 # -----------------------------------------------------------------------------
 # Loading page: title, status label, progress bar
 # -----------------------------------------------------------------------------
@@ -74,44 +104,25 @@ lvgl:
 # -----------------------------------------------------------------------------
 esphome:
   on_boot:
-    priority: -100
-    then:
-      - lambda: |-
-          lv_bar_set_value(id(loading_progress_bar), 25, LV_ANIM_OFF);
-          lv_label_set_text(id(loading_status_label), "Initializing display");
-      - delay: 100ms
-      - if:
-          condition:
-            lambda: |-
-              return !id(backlight_manual_off) &&
-                     !id(screen_schedule_asleep) &&
-                     !(id(schedule_enabled).state && !id(sntp_time).now().is_valid());
-          then:
-            - light.turn_on:
-                id: backlight
-                brightness: 90%
-                transition_length: 500ms
-      - lambda: |-
-          std::string name = App.get_name();
-          std::string wifi_text = "Connect to the WiFi hotspot\n'" + name + "'\nto configure your network\n\nThen visit ${captive_portal_ip} in your browser";
-          lv_label_set_text(id(wifi_setup_instructions), wifi_text.c_str());
-      - if:
-          condition:
-            lambda: 'return wifi::global_wifi_component->has_sta();'
-          then:
-            - lambda: |-
-                lv_bar_set_value(id(loading_progress_bar), 50, LV_ANIM_OFF);
-                lv_label_set_text(id(loading_status_label), "Connecting to WiFi");
-            - delay: 10s
-            - lambda: 'id(boot_grace_period) = false;'
-            - if:
-                condition:
-                  not:
-                    wifi.connected:
-                then:
-                  - lvgl.page.show: wifi_setup_page
-                  - script.execute: setup_screen_dim
-          else:
-            - lambda: 'id(boot_grace_period) = false;'
-            - lvgl.page.show: wifi_setup_page
-            - script.execute: setup_screen_dim
+    - priority: -100
+      then:
+        - lambda: |-
+            lv_bar_set_value(id(loading_progress_bar), 25, LV_ANIM_OFF);
+            lv_label_set_text(id(loading_status_label), "Initializing display");
+        - delay: 100ms
+        - if:
+            condition:
+              lambda: |-
+                return !id(backlight_manual_off) &&
+                       !id(screen_schedule_asleep) &&
+                       !(id(schedule_enabled).state && !id(sntp_time).now().is_valid());
+            then:
+              - light.turn_on:
+                  id: backlight
+                  brightness: 90%
+                  transition_length: 500ms
+        - lambda: |-
+            std::string name = App.get_name();
+            std::string wifi_text = "Connect to the WiFi hotspot\n'" + name + "'\nto configure your network\n\nThen visit ${captive_portal_ip} in your browser";
+            lv_label_set_text(id(wifi_setup_instructions), wifi_text.c_str());
+        - script.execute: finish_startup_screen
