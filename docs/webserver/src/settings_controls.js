@@ -19,6 +19,7 @@
       makeClockCard: makeClockCard,
       makeFirmwareCard: makeFirmwareCard,
       makeWifiCard: makeWifiCard,
+      makeDeviceRebootCard: makeDeviceRebootCard,
       makeDeveloperCard: makeDeveloperCard,
       makeBackupCard: makeBackupCard
     };
@@ -63,7 +64,8 @@
       makeFirmwareCard(),
       makeWifiCard(),
       makeDeveloperCard(),
-      makeBackupCard()
+      makeBackupCard(),
+      makeDeviceRebootCard()
     ];
     appendCards(wrap, settingsCards);
     app.appendChild(wrap);

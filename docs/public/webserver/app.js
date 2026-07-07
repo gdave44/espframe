@@ -4,19 +4,19 @@
 
   var TIMEZONES = ["Pacific/Midway (GMT-11)","Pacific/Pago_Pago (GMT-11)","Pacific/Honolulu (GMT-10)","America/Adak (GMT-10)","America/Anchorage (GMT-9)","America/Juneau (GMT-9)","America/Los_Angeles (GMT-8)","America/Vancouver (GMT-8)","America/Tijuana (GMT-8)","America/Denver (GMT-7)","America/Phoenix (GMT-7)","America/Edmonton (GMT-7)","America/Boise (GMT-7)","America/Chicago (GMT-6)","America/Mexico_City (GMT-6)","America/Winnipeg (GMT-6)","America/Guatemala (GMT-6)","America/Costa_Rica (GMT-6)","America/New_York (GMT-5)","America/Toronto (GMT-5)","America/Detroit (GMT-5)","America/Havana (GMT-5)","America/Bogota (GMT-5)","America/Lima (GMT-5)","America/Jamaica (GMT-5)","America/Panama (GMT-5)","America/Halifax (GMT-4)","America/Caracas (GMT-4)","America/Santiago (GMT-4)","America/La_Paz (GMT-4)","America/Manaus (GMT-4)","America/Barbados (GMT-4)","America/Puerto_Rico (GMT-4)","America/Santo_Domingo (GMT-4)","America/St_Johns (GMT-3:30)","America/Sao_Paulo (GMT-3)","America/Argentina/Buenos_Aires (GMT-3)","America/Montevideo (GMT-3)","America/Paramaribo (GMT-3)","Atlantic/South_Georgia (GMT-2)","Atlantic/Azores (GMT-1)","Atlantic/Cape_Verde (GMT-1)","UTC (GMT+0)","Europe/London (GMT+0)","Europe/Dublin (GMT+0)","Europe/Lisbon (GMT+0)","Africa/Casablanca (GMT+1)","Africa/Accra (GMT+0)","Atlantic/Reykjavik (GMT+0)","Europe/Paris (GMT+1)","Europe/Berlin (GMT+1)","Europe/Rome (GMT+1)","Europe/Madrid (GMT+1)","Europe/Amsterdam (GMT+1)","Europe/Brussels (GMT+1)","Europe/Vienna (GMT+1)","Europe/Zurich (GMT+1)","Europe/Stockholm (GMT+1)","Europe/Oslo (GMT+1)","Europe/Copenhagen (GMT+1)","Europe/Warsaw (GMT+1)","Europe/Prague (GMT+1)","Europe/Budapest (GMT+1)","Europe/Belgrade (GMT+1)","Africa/Lagos (GMT+1)","Africa/Tunis (GMT+1)","Africa/Cairo (GMT+2)","Europe/Athens (GMT+2)","Europe/Bucharest (GMT+2)","Europe/Helsinki (GMT+2)","Europe/Kyiv (GMT+2)","Europe/Istanbul (GMT+3)","Africa/Johannesburg (GMT+2)","Africa/Nairobi (GMT+3)","Asia/Jerusalem (GMT+2)","Asia/Amman (GMT+3)","Asia/Beirut (GMT+2)","Europe/Moscow (GMT+3)","Asia/Baghdad (GMT+3)","Asia/Riyadh (GMT+3)","Asia/Kuwait (GMT+3)","Asia/Qatar (GMT+3)","Africa/Addis_Ababa (GMT+3)","Asia/Tehran (GMT+3:30)","Asia/Dubai (GMT+4)","Asia/Muscat (GMT+4)","Asia/Baku (GMT+4)","Asia/Tbilisi (GMT+4)","Indian/Mauritius (GMT+4)","Asia/Kabul (GMT+4:30)","Asia/Karachi (GMT+5)","Asia/Tashkent (GMT+5)","Asia/Yekaterinburg (GMT+5)","Asia/Kolkata (GMT+5:30)","Asia/Colombo (GMT+5:30)","Asia/Kathmandu (GMT+5:45)","Asia/Dhaka (GMT+6)","Asia/Almaty (GMT+5)","Asia/Rangoon (GMT+6:30)","Asia/Bangkok (GMT+7)","Asia/Jakarta (GMT+7)","Asia/Ho_Chi_Minh (GMT+7)","Asia/Singapore (GMT+8)","Asia/Kuala_Lumpur (GMT+8)","Asia/Shanghai (GMT+8)","Asia/Hong_Kong (GMT+8)","Asia/Taipei (GMT+8)","Asia/Manila (GMT+8)","Australia/Perth (GMT+8)","Asia/Tokyo (GMT+9)","Asia/Seoul (GMT+9)","Asia/Pyongyang (GMT+9)","Australia/Adelaide (GMT+9:30)","Australia/Darwin (GMT+9:30)","Australia/Sydney (GMT+10)","Australia/Melbourne (GMT+10)","Australia/Brisbane (GMT+10)","Australia/Hobart (GMT+10)","Pacific/Guam (GMT+10)","Pacific/Port_Moresby (GMT+10)","Asia/Vladivostok (GMT+10)","Pacific/Noumea (GMT+11)","Pacific/Norfolk (GMT+11)","Asia/Magadan (GMT+11)","Pacific/Auckland (GMT+12)","Pacific/Fiji (GMT+12)","Pacific/Chatham (GMT+12:45)","Pacific/Tongatapu (GMT+13)","Pacific/Apia (GMT+13)","Pacific/Kiritimati (GMT+14)"];
   var TIMEZONE_LABELS = {"Pacific/Midway (GMT-11)":"Pacific/Midway (GMT-11)","Pacific/Pago_Pago (GMT-11)":"Pacific/Pago_Pago (GMT-11)","Pacific/Honolulu (GMT-10)":"Pacific/Honolulu (GMT-10)","America/Adak (GMT-10)":"America/Adak (GMT-10; daylight GMT-9)","America/Anchorage (GMT-9)":"America/Anchorage (GMT-9; daylight GMT-8)","America/Juneau (GMT-9)":"America/Juneau (GMT-9; daylight GMT-8)","America/Los_Angeles (GMT-8)":"America/Los_Angeles (GMT-8; daylight GMT-7)","America/Vancouver (GMT-8)":"America/Vancouver (GMT-8; active GMT-7)","America/Tijuana (GMT-8)":"America/Tijuana (GMT-8; daylight GMT-7)","America/Denver (GMT-7)":"America/Denver (GMT-7; daylight GMT-6)","America/Phoenix (GMT-7)":"America/Phoenix (GMT-7)","America/Edmonton (GMT-7)":"America/Edmonton (GMT-7; daylight GMT-6)","America/Boise (GMT-7)":"America/Boise (GMT-7; daylight GMT-6)","America/Chicago (GMT-6)":"America/Chicago (GMT-6; daylight GMT-5)","America/Mexico_City (GMT-6)":"America/Mexico_City (GMT-6)","America/Winnipeg (GMT-6)":"America/Winnipeg (GMT-6; daylight GMT-5)","America/Guatemala (GMT-6)":"America/Guatemala (GMT-6)","America/Costa_Rica (GMT-6)":"America/Costa_Rica (GMT-6)","America/New_York (GMT-5)":"America/New_York (GMT-5; daylight GMT-4)","America/Toronto (GMT-5)":"America/Toronto (GMT-5; daylight GMT-4)","America/Detroit (GMT-5)":"America/Detroit (GMT-5; daylight GMT-4)","America/Havana (GMT-5)":"America/Havana (GMT-5; daylight GMT-4)","America/Bogota (GMT-5)":"America/Bogota (GMT-5)","America/Lima (GMT-5)":"America/Lima (GMT-5)","America/Jamaica (GMT-5)":"America/Jamaica (GMT-5)","America/Panama (GMT-5)":"America/Panama (GMT-5)","America/Halifax (GMT-4)":"America/Halifax (GMT-4; daylight GMT-3)","America/Caracas (GMT-4)":"America/Caracas (GMT-4)","America/Santiago (GMT-4)":"America/Santiago (GMT-4; daylight GMT-3)","America/La_Paz (GMT-4)":"America/La_Paz (GMT-4)","America/Manaus (GMT-4)":"America/Manaus (GMT-4)","America/Barbados (GMT-4)":"America/Barbados (GMT-4)","America/Puerto_Rico (GMT-4)":"America/Puerto_Rico (GMT-4)","America/Santo_Domingo (GMT-4)":"America/Santo_Domingo (GMT-4)","America/St_Johns (GMT-3:30)":"America/St_Johns (GMT-3:30; daylight GMT-2:30)","America/Sao_Paulo (GMT-3)":"America/Sao_Paulo (GMT-3)","America/Argentina/Buenos_Aires (GMT-3)":"America/Argentina/Buenos_Aires (GMT-3)","America/Montevideo (GMT-3)":"America/Montevideo (GMT-3)","America/Paramaribo (GMT-3)":"America/Paramaribo (GMT-3)","Atlantic/South_Georgia (GMT-2)":"Atlantic/South_Georgia (GMT-2)","Atlantic/Azores (GMT-1)":"Atlantic/Azores (GMT-1; daylight GMT+0)","Atlantic/Cape_Verde (GMT-1)":"Atlantic/Cape_Verde (GMT-1)","UTC (GMT+0)":"UTC (GMT+0)","Europe/London (GMT+0)":"Europe/London (GMT+0; daylight GMT+1)","Europe/Dublin (GMT+0)":"Europe/Dublin (GMT+0; daylight GMT+1)","Europe/Lisbon (GMT+0)":"Europe/Lisbon (GMT+0; daylight GMT+1)","Africa/Casablanca (GMT+1)":"Africa/Casablanca (GMT+1)","Africa/Accra (GMT+0)":"Africa/Accra (GMT+0)","Atlantic/Reykjavik (GMT+0)":"Atlantic/Reykjavik (GMT+0)","Europe/Paris (GMT+1)":"Europe/Paris (GMT+1; daylight GMT+2)","Europe/Berlin (GMT+1)":"Europe/Berlin (GMT+1; daylight GMT+2)","Europe/Rome (GMT+1)":"Europe/Rome (GMT+1; daylight GMT+2)","Europe/Madrid (GMT+1)":"Europe/Madrid (GMT+1; daylight GMT+2)","Europe/Amsterdam (GMT+1)":"Europe/Amsterdam (GMT+1; daylight GMT+2)","Europe/Brussels (GMT+1)":"Europe/Brussels (GMT+1; daylight GMT+2)","Europe/Vienna (GMT+1)":"Europe/Vienna (GMT+1; daylight GMT+2)","Europe/Zurich (GMT+1)":"Europe/Zurich (GMT+1; daylight GMT+2)","Europe/Stockholm (GMT+1)":"Europe/Stockholm (GMT+1; daylight GMT+2)","Europe/Oslo (GMT+1)":"Europe/Oslo (GMT+1; daylight GMT+2)","Europe/Copenhagen (GMT+1)":"Europe/Copenhagen (GMT+1; daylight GMT+2)","Europe/Warsaw (GMT+1)":"Europe/Warsaw (GMT+1; daylight GMT+2)","Europe/Prague (GMT+1)":"Europe/Prague (GMT+1; daylight GMT+2)","Europe/Budapest (GMT+1)":"Europe/Budapest (GMT+1; daylight GMT+2)","Europe/Belgrade (GMT+1)":"Europe/Belgrade (GMT+1; daylight GMT+2)","Africa/Lagos (GMT+1)":"Africa/Lagos (GMT+1)","Africa/Tunis (GMT+1)":"Africa/Tunis (GMT+1)","Africa/Cairo (GMT+2)":"Africa/Cairo (GMT+2; daylight GMT+3)","Europe/Athens (GMT+2)":"Europe/Athens (GMT+2; daylight GMT+3)","Europe/Bucharest (GMT+2)":"Europe/Bucharest (GMT+2; daylight GMT+3)","Europe/Helsinki (GMT+2)":"Europe/Helsinki (GMT+2; daylight GMT+3)","Europe/Kyiv (GMT+2)":"Europe/Kyiv (GMT+2; daylight GMT+3)","Europe/Istanbul (GMT+3)":"Europe/Istanbul (GMT+3)","Africa/Johannesburg (GMT+2)":"Africa/Johannesburg (GMT+2)","Africa/Nairobi (GMT+3)":"Africa/Nairobi (GMT+3)","Asia/Jerusalem (GMT+2)":"Asia/Jerusalem (GMT+2; daylight GMT+3)","Asia/Amman (GMT+3)":"Asia/Amman (GMT+3)","Asia/Beirut (GMT+2)":"Asia/Beirut (GMT+2; daylight GMT+3)","Europe/Moscow (GMT+3)":"Europe/Moscow (GMT+3)","Asia/Baghdad (GMT+3)":"Asia/Baghdad (GMT+3)","Asia/Riyadh (GMT+3)":"Asia/Riyadh (GMT+3)","Asia/Kuwait (GMT+3)":"Asia/Kuwait (GMT+3)","Asia/Qatar (GMT+3)":"Asia/Qatar (GMT+3)","Africa/Addis_Ababa (GMT+3)":"Africa/Addis_Ababa (GMT+3)","Asia/Tehran (GMT+3:30)":"Asia/Tehran (GMT+3:30)","Asia/Dubai (GMT+4)":"Asia/Dubai (GMT+4)","Asia/Muscat (GMT+4)":"Asia/Muscat (GMT+4)","Asia/Baku (GMT+4)":"Asia/Baku (GMT+4)","Asia/Tbilisi (GMT+4)":"Asia/Tbilisi (GMT+4)","Indian/Mauritius (GMT+4)":"Indian/Mauritius (GMT+4)","Asia/Kabul (GMT+4:30)":"Asia/Kabul (GMT+4:30)","Asia/Karachi (GMT+5)":"Asia/Karachi (GMT+5)","Asia/Tashkent (GMT+5)":"Asia/Tashkent (GMT+5)","Asia/Yekaterinburg (GMT+5)":"Asia/Yekaterinburg (GMT+5)","Asia/Kolkata (GMT+5:30)":"Asia/Kolkata (GMT+5:30)","Asia/Colombo (GMT+5:30)":"Asia/Colombo (GMT+5:30)","Asia/Kathmandu (GMT+5:45)":"Asia/Kathmandu (GMT+5:45)","Asia/Dhaka (GMT+6)":"Asia/Dhaka (GMT+6)","Asia/Almaty (GMT+5)":"Asia/Almaty (GMT+5)","Asia/Rangoon (GMT+6:30)":"Asia/Rangoon (GMT+6:30)","Asia/Bangkok (GMT+7)":"Asia/Bangkok (GMT+7)","Asia/Jakarta (GMT+7)":"Asia/Jakarta (GMT+7)","Asia/Ho_Chi_Minh (GMT+7)":"Asia/Ho_Chi_Minh (GMT+7)","Asia/Singapore (GMT+8)":"Asia/Singapore (GMT+8)","Asia/Kuala_Lumpur (GMT+8)":"Asia/Kuala_Lumpur (GMT+8)","Asia/Shanghai (GMT+8)":"Asia/Shanghai (GMT+8)","Asia/Hong_Kong (GMT+8)":"Asia/Hong_Kong (GMT+8)","Asia/Taipei (GMT+8)":"Asia/Taipei (GMT+8)","Asia/Manila (GMT+8)":"Asia/Manila (GMT+8)","Australia/Perth (GMT+8)":"Australia/Perth (GMT+8)","Asia/Tokyo (GMT+9)":"Asia/Tokyo (GMT+9)","Asia/Seoul (GMT+9)":"Asia/Seoul (GMT+9)","Asia/Pyongyang (GMT+9)":"Asia/Pyongyang (GMT+9)","Australia/Adelaide (GMT+9:30)":"Australia/Adelaide (GMT+9:30; daylight GMT+10:30)","Australia/Darwin (GMT+9:30)":"Australia/Darwin (GMT+9:30)","Australia/Sydney (GMT+10)":"Australia/Sydney (GMT+10; daylight GMT+11)","Australia/Melbourne (GMT+10)":"Australia/Melbourne (GMT+10; daylight GMT+11)","Australia/Brisbane (GMT+10)":"Australia/Brisbane (GMT+10)","Australia/Hobart (GMT+10)":"Australia/Hobart (GMT+10; daylight GMT+11)","Pacific/Guam (GMT+10)":"Pacific/Guam (GMT+10)","Pacific/Port_Moresby (GMT+10)":"Pacific/Port_Moresby (GMT+10)","Asia/Vladivostok (GMT+10)":"Asia/Vladivostok (GMT+10)","Pacific/Noumea (GMT+11)":"Pacific/Noumea (GMT+11)","Pacific/Norfolk (GMT+11)":"Pacific/Norfolk (GMT+11; daylight GMT+12)","Asia/Magadan (GMT+11)":"Asia/Magadan (GMT+11)","Pacific/Auckland (GMT+12)":"Pacific/Auckland (GMT+12; daylight GMT+13)","Pacific/Fiji (GMT+12)":"Pacific/Fiji (GMT+12)","Pacific/Chatham (GMT+12:45)":"Pacific/Chatham (GMT+12:45; daylight GMT+13:45)","Pacific/Tongatapu (GMT+13)":"Pacific/Tongatapu (GMT+13)","Pacific/Apia (GMT+13)":"Pacific/Apia (GMT+13)","Pacific/Kiritimati (GMT+14)":"Pacific/Kiritimati (GMT+14)"};
-  var PRODUCT_SETTINGS = {"photo_source":{"entity":"select/Photos: Source","domain":"select","default":"All Photos","options":["All Photos","Favorites","Album","Person","Tag","Memories"]},"album_order":{"entity":"select/Photos: Album Order","domain":"select","default":"Random albums","options":["Random albums","Album list order"]},"date_filter_mode":{"entity":"select/Photos: Date Filter Mode","domain":"select","default":"Fixed Range","options":["Fixed Range","Relative Range"]},"relative_unit":{"entity":"select/Photos: Relative Unit","domain":"select","default":"Years","options":["Months","Years"]},"photo_orientation":{"entity":"select/Photos: Orientation","domain":"select","default":"Any","options":["Any","Portrait Only","Landscape Only"]},"display_mode":{"entity":"select/Photos: Display Mode","domain":"select","default":"Fill","options":["Fill","Fit"]},"interval":{"entity":"select/Photos: Slideshow Interval","domain":"select","default":"15 seconds","options":["10 seconds","15 seconds","20 seconds","30 seconds","45 seconds","1 minute","2 minutes","3 minutes","5 minutes","10 minutes"]},"conn_timeout":{"entity":"select/Screen: Connection Timeout","domain":"select","default":"10 minutes","options":["30 seconds","45 seconds","1 minute","2 minutes","3 minutes","5 minutes","10 minutes","15 minutes","20 minutes","30 minutes"]},"screen_rotation":{"entity":"select/Screen: Rotation","domain":"select","default":"0","options":["0","180"],"developerOptions":["90","270"]},"photo_metadata_date_format":{"entity":"select/Device: Metadata Date Format","domain":"select","default":"Date Taken","options":["Relative Date","Date Taken"]},"photo_metadata_date_taken_format":{"entity":"select/Device: Metadata Date Taken Format","domain":"select","default":"1 January, 2026","options":["1 January, 2026","January 1, 2026"]},"clock_format":{"entity":"select/Clock: Format","domain":"select","default":"24 Hour","options":["24 Hour","12 Hour"]},"update_frequency":{"entity":"select/Firmware: Update Frequency","domain":"select","default":"Daily","options":["Hourly","Daily","Weekly","Monthly"]},"auto_update":{"entity":"switch/Firmware: Auto Update","domain":"switch","default":true,"options":[]},"beta_channel":{"entity":"switch/Firmware: Beta Channel","domain":"switch","default":false,"options":[]},"firmware_manifest_url":{"entity":"text/Firmware: Manifest URL","domain":"text","default":"","options":[]},"firmware_beta_manifest_url":{"entity":"text/Firmware: Beta Manifest URL","domain":"text","default":"","options":[]},"date_filter_enabled":{"entity":"switch/Photos: Date Filter","domain":"switch","default":false,"options":[]},"date_from":{"entity":"text/Photos: Date From","domain":"text","default":"","options":[]},"date_to":{"entity":"text/Photos: Date To","domain":"text","default":"","options":[]},"relative_amount":{"entity":"number/Photos: Relative Amount","domain":"number","default":1,"options":[],"min":1,"max":120,"step":1},"schedule_enabled":{"entity":"switch/Screen: Schedule Enabled","domain":"switch","default":false,"options":[]},"schedule_on_hour":{"entity":"number/Screen: Schedule On Hour","domain":"number","default":6,"options":[],"min":0,"max":23,"step":1},"schedule_off_hour":{"entity":"number/Screen: Schedule Off Hour","domain":"number","default":23,"options":[],"min":0,"max":23,"step":1},"schedule_wake_timeout":{"entity":"number/Screen: Schedule Wake Timeout","domain":"number","default":60,"options":[],"min":10,"max":3600,"step":10},"brightness_day":{"entity":"number/Screen: Daytime Brightness","domain":"number","default":100,"options":[],"min":10,"max":100,"step":5},"brightness_night":{"entity":"number/Screen: Nighttime Brightness","domain":"number","default":75,"options":[],"min":10,"max":100,"step":5},"base_tone_enabled":{"entity":"switch/Screen: Tone Adjustment","domain":"switch","default":false,"options":[]},"base_tone":{"entity":"number/Screen: Display Tone","domain":"number","default":0,"options":[],"min":0,"max":100,"step":5},"warm_tones_enabled":{"entity":"switch/Screen: Night Tone Adjustment","domain":"switch","default":false,"options":[]},"warm_tone_intensity":{"entity":"number/Screen: Warm Tone Intensity","domain":"number","default":50,"options":[],"min":10,"max":100,"step":5},"warm_tone_override":{"entity":"switch/Screen: Warm Tone Override","domain":"switch","default":false,"options":[]},"portrait_pairing":{"entity":"switch/Photos: Portrait Pairing","domain":"switch","default":true,"options":[]},"photo_metadata_date_enabled":{"entity":"switch/Device: Metadata Date","domain":"switch","default":true,"options":[]},"photo_metadata_location_enabled":{"entity":"switch/Device: Metadata Location","domain":"switch","default":true,"options":[]}};
+  var PRODUCT_SETTINGS = {"photo_source":{"entity":"select/Photos: Source","domain":"select","default":"All Photos","options":["All Photos","Favorites","Album","Person","Tag","Memories"]},"album_order":{"entity":"select/Photos: Album Order","domain":"select","default":"Random albums","options":["Random albums","Album list order"]},"date_filter_mode":{"entity":"select/Photos: Date Filter Mode","domain":"select","default":"Fixed Range","options":["Fixed Range","Relative Range"]},"relative_unit":{"entity":"select/Photos: Relative Unit","domain":"select","default":"Years","options":["Months","Years"]},"photo_orientation":{"entity":"select/Photos: Orientation","domain":"select","default":"Any","options":["Any","Portrait Only","Landscape Only"]},"display_mode":{"entity":"select/Photos: Display Mode","domain":"select","default":"Fill","options":["Fill","Fit"]},"interval":{"entity":"select/Photos: Slideshow Interval","domain":"select","default":"15 seconds","options":["10 seconds","15 seconds","20 seconds","30 seconds","45 seconds","1 minute","2 minutes","3 minutes","5 minutes","10 minutes"]},"conn_timeout":{"entity":"select/Screen: Connection Timeout","domain":"select","default":"10 minutes","options":["30 seconds","45 seconds","1 minute","2 minutes","3 minutes","5 minutes","10 minutes","15 minutes","20 minutes","30 minutes"]},"screen_rotation":{"entity":"select/Screen: Rotation","domain":"select","default":"0","options":["0","180"],"developerOptions":["90","270"]},"photo_metadata_date_format":{"entity":"select/Device: Metadata Date Format","domain":"select","default":"Date Taken","options":["Relative Date","Date Taken"]},"photo_metadata_date_taken_format":{"entity":"select/Device: Metadata Date Taken Format","domain":"select","default":"1 January, 2026","options":["1 January, 2026","January 1, 2026"]},"clock_format":{"entity":"select/Clock: Format","domain":"select","default":"24 Hour","options":["24 Hour","12 Hour"]},"update_frequency":{"entity":"select/Firmware: Update Frequency","domain":"select","default":"Daily","options":["Hourly","Daily","Weekly","Monthly"]},"auto_update":{"entity":"switch/Firmware: Auto Update","domain":"switch","default":true,"options":[]},"firmware_manifest_url":{"entity":"text/Firmware: Manifest URL","domain":"text","default":"","options":[]},"date_filter_enabled":{"entity":"switch/Photos: Date Filter","domain":"switch","default":false,"options":[]},"date_from":{"entity":"text/Photos: Date From","domain":"text","default":"","options":[]},"date_to":{"entity":"text/Photos: Date To","domain":"text","default":"","options":[]},"relative_amount":{"entity":"number/Photos: Relative Amount","domain":"number","default":1,"options":[],"min":1,"max":120,"step":1},"schedule_enabled":{"entity":"switch/Screen: Schedule Enabled","domain":"switch","default":false,"options":[]},"schedule_on_hour":{"entity":"number/Screen: Schedule On Hour","domain":"number","default":6,"options":[],"min":0,"max":23,"step":1},"schedule_off_hour":{"entity":"number/Screen: Schedule Off Hour","domain":"number","default":23,"options":[],"min":0,"max":23,"step":1},"schedule_wake_timeout":{"entity":"number/Screen: Schedule Wake Timeout","domain":"number","default":60,"options":[],"min":10,"max":3600,"step":10},"brightness_day":{"entity":"number/Screen: Daytime Brightness","domain":"number","default":100,"options":[],"min":10,"max":100,"step":5},"brightness_night":{"entity":"number/Screen: Nighttime Brightness","domain":"number","default":75,"options":[],"min":10,"max":100,"step":5},"base_tone_enabled":{"entity":"switch/Screen: Tone Adjustment","domain":"switch","default":false,"options":[]},"base_tone":{"entity":"number/Screen: Display Tone","domain":"number","default":0,"options":[],"min":0,"max":100,"step":5},"warm_tones_enabled":{"entity":"switch/Screen: Night Tone Adjustment","domain":"switch","default":false,"options":[]},"warm_tone_intensity":{"entity":"number/Screen: Warm Tone Intensity","domain":"number","default":50,"options":[],"min":10,"max":100,"step":5},"warm_tone_override":{"entity":"switch/Screen: Warm Tone Override","domain":"switch","default":false,"options":[]},"portrait_pairing":{"entity":"switch/Photos: Portrait Pairing","domain":"switch","default":true,"options":[]},"photo_metadata_date_enabled":{"entity":"switch/Device: Metadata Date","domain":"switch","default":true,"options":[]},"photo_metadata_location_enabled":{"entity":"switch/Device: Metadata Location","domain":"switch","default":true,"options":[]}};
   var STATIC_ENTITIES = {"firmware":{"entity":"text_sensor/Firmware: Version"},"timezone":{"entity":"select/Clock: Timezone","optionsKey":"tz_options","default":"Europe/London (GMT+0)"},"ntp_server_1":{"entity":"text/Clock: NTP Server 1","default":"0.pool.ntp.org"},"ntp_server_2":{"entity":"text/Clock: NTP Server 2","default":"1.pool.ntp.org"},"ntp_server_3":{"entity":"text/Clock: NTP Server 3","default":"2.pool.ntp.org"},"album_ids":{"entity":"text/Photos: Album IDs"},"album_labels":{"entity":"text/Photos: Album Labels"},"person_ids":{"entity":"text/Photos: Person IDs"},"person_labels":{"entity":"text/Photos: Person Labels"},"tag_ids":{"entity":"text/Photos: Tag IDs"},"tag_labels":{"entity":"text/Photos: Tag Labels"},"sunrise":{"entity":"text_sensor/Screen: Sunrise"},"sunset":{"entity":"text_sensor/Screen: Sunset"},"developer_features_enabled":{"entity":"switch/Developer: Features","boolFromState":true},"show_clock":{"entity":"switch/Clock: Show","boolFromState":true,"default":true},"c6_current_firmware":{"entity":"text_sensor/ESP32-C6: Current Firmware","default":"Unknown"},"c6_available_firmware":{"entity":"text_sensor/ESP32-C6: Available Firmware","default":"Unknown"}};
-  var MANUAL_ENTITIES = {"immich_url":{"entity":"text/Connection: Server URL"},"api_key":{"entity":"text/Connection: API Key"},"backlight":{"entity":"light/Screen: Backlight"},"update":{"entity":"update/Firmware: Update"},"update_beta":{"entity":"update/Firmware: Update Beta"},"apply_photo_source":{"entity":"button/Apply Photo Source"},"firmware_check":{"entity":"button/Firmware: Check for Update"},"c6_firmware_check":{"entity":"button/Firmware ESP32-C6: Check for Update"},"c6_firmware_install":{"entity":"button/Firmware ESP32-C6: Install Update"},"reboot_screen":{"entity":"button/Device: Reboot Screen"}};
+  var MANUAL_ENTITIES = {"immich_url":{"entity":"text/Connection: Server URL"},"api_key":{"entity":"text/Connection: API Key"},"backlight":{"entity":"light/Screen: Backlight"},"update":{"entity":"update/Firmware: Update"},"apply_photo_source":{"entity":"button/Apply Photo Source"},"firmware_check":{"entity":"button/Firmware: Check for Update"},"c6_firmware_check":{"entity":"button/Firmware ESP32-C6: Check for Update"},"c6_firmware_install":{"entity":"button/Firmware ESP32-C6: Install Update"},"reboot_screen":{"entity":"button/Device: Reboot Screen"}};
   var MANUAL_STATE_KEYS = ["immich_url","api_key"];
   var ENTITY_ALIASES = {"schedule_enabled":[{"entity":"switch/Screen: Schedule","boolFromState":true}],"schedule_on_hour":[{"entity":"number/Screen: Schedule On","default":6,"number":true}],"schedule_off_hour":[{"entity":"number/Screen: Schedule Off","default":23,"number":true}]};
   var BACKUP_CONFIG_VERSION = 1;
-  var BACKUP_SCHEMA = [{"group":"connection","field":"immich_url","state_keys":["immich_url"]},{"group":"connection","field":"api_key","state_keys":["api_key"]},{"group":"photos","field":"source","state_keys":["photo_source"]},{"group":"photos","field":"album_order","state_keys":["album_order"]},{"group":"photos","field":"album_ids","state_keys":["album_ids"]},{"group":"photos","field":"album_labels","state_keys":["album_labels"]},{"group":"photos","field":"person_ids","state_keys":["person_ids"]},{"group":"photos","field":"person_labels","state_keys":["person_labels"]},{"group":"photos","field":"tag_ids","state_keys":["tag_ids"]},{"group":"photos","field":"tag_labels","state_keys":["tag_labels"]},{"group":"photos","field":"date_filter_enabled","state_keys":["date_filter_enabled"]},{"group":"photos","field":"date_filter_mode","state_keys":["date_filter_mode"]},{"group":"photos","field":"date_from","state_keys":["date_from"]},{"group":"photos","field":"date_to","state_keys":["date_to"]},{"group":"photos","field":"relative_amount","state_keys":["relative_amount"]},{"group":"photos","field":"relative_unit","state_keys":["relative_unit"]},{"group":"photos","field":"orientation","state_keys":["photo_orientation"]},{"group":"photos","field":"portrait_pairing","state_keys":["portrait_pairing"]},{"group":"photos","field":"display_mode","state_keys":["display_mode"]},{"group":"frequency","field":"interval","state_keys":["interval"]},{"group":"frequency","field":"conn_timeout","state_keys":["conn_timeout"]},{"group":"firmware_updates","field":"auto_update","state_keys":["auto_update"]},{"group":"firmware_updates","field":"beta_channel","state_keys":["beta_channel"]},{"group":"firmware_updates","field":"update_frequency","state_keys":["update_frequency"]},{"group":"firmware_updates","field":"manifest_url","state_keys":["firmware_manifest_url"]},{"group":"firmware_updates","field":"beta_manifest_url","state_keys":["firmware_beta_manifest_url"]},{"group":"clock","field":"show","state_keys":["show_clock"]},{"group":"clock","field":"format","state_keys":["clock_format"]},{"group":"clock","field":"timezone","state_keys":["timezone"]},{"group":"clock","field":"ntp_servers","state_keys":["ntp_server_1","ntp_server_2","ntp_server_3"]},{"group":"screen","field":"brightness_day","state_keys":["brightness_day"]},{"group":"screen","field":"brightness_night","state_keys":["brightness_night"]},{"group":"screen","field":"schedule_enabled","state_keys":["schedule_enabled"]},{"group":"screen","field":"schedule_on_hour","state_keys":["schedule_on_hour"]},{"group":"screen","field":"schedule_off_hour","state_keys":["schedule_off_hour"]},{"group":"screen","field":"schedule_wake_timeout","state_keys":["schedule_wake_timeout"]},{"group":"screen","field":"base_tone_enabled","state_keys":["base_tone_enabled"]},{"group":"screen","field":"base_tone","state_keys":["base_tone"]},{"group":"screen","field":"warm_tones_enabled","state_keys":["warm_tones_enabled"]},{"group":"screen","field":"warm_tone_intensity","state_keys":["warm_tone_intensity"]},{"group":"screen","field":"warm_tone_override","state_keys":["warm_tone_override"]},{"group":"screen","field":"rotation","state_keys":["screen_rotation"]}];
-  var LIVE_RENDER_STATE_KEYS = ["screen_rotation","portrait_pairing","developer_features_enabled","beta_channel"];
+  var BACKUP_SCHEMA = [{"group":"connection","field":"immich_url","state_keys":["immich_url"]},{"group":"connection","field":"api_key","state_keys":["api_key"]},{"group":"photos","field":"source","state_keys":["photo_source"]},{"group":"photos","field":"album_order","state_keys":["album_order"]},{"group":"photos","field":"album_ids","state_keys":["album_ids"]},{"group":"photos","field":"album_labels","state_keys":["album_labels"]},{"group":"photos","field":"person_ids","state_keys":["person_ids"]},{"group":"photos","field":"person_labels","state_keys":["person_labels"]},{"group":"photos","field":"tag_ids","state_keys":["tag_ids"]},{"group":"photos","field":"tag_labels","state_keys":["tag_labels"]},{"group":"photos","field":"date_filter_enabled","state_keys":["date_filter_enabled"]},{"group":"photos","field":"date_filter_mode","state_keys":["date_filter_mode"]},{"group":"photos","field":"date_from","state_keys":["date_from"]},{"group":"photos","field":"date_to","state_keys":["date_to"]},{"group":"photos","field":"relative_amount","state_keys":["relative_amount"]},{"group":"photos","field":"relative_unit","state_keys":["relative_unit"]},{"group":"photos","field":"orientation","state_keys":["photo_orientation"]},{"group":"photos","field":"portrait_pairing","state_keys":["portrait_pairing"]},{"group":"photos","field":"display_mode","state_keys":["display_mode"]},{"group":"frequency","field":"interval","state_keys":["interval"]},{"group":"frequency","field":"conn_timeout","state_keys":["conn_timeout"]},{"group":"firmware_updates","field":"auto_update","state_keys":["auto_update"]},{"group":"firmware_updates","field":"update_frequency","state_keys":["update_frequency"]},{"group":"firmware_updates","field":"manifest_url","state_keys":["firmware_manifest_url"]},{"group":"clock","field":"show","state_keys":["show_clock"]},{"group":"clock","field":"format","state_keys":["clock_format"]},{"group":"clock","field":"timezone","state_keys":["timezone"]},{"group":"clock","field":"ntp_servers","state_keys":["ntp_server_1","ntp_server_2","ntp_server_3"]},{"group":"screen","field":"brightness_day","state_keys":["brightness_day"]},{"group":"screen","field":"brightness_night","state_keys":["brightness_night"]},{"group":"screen","field":"schedule_enabled","state_keys":["schedule_enabled"]},{"group":"screen","field":"schedule_on_hour","state_keys":["schedule_on_hour"]},{"group":"screen","field":"schedule_off_hour","state_keys":["schedule_off_hour"]},{"group":"screen","field":"schedule_wake_timeout","state_keys":["schedule_wake_timeout"]},{"group":"screen","field":"base_tone_enabled","state_keys":["base_tone_enabled"]},{"group":"screen","field":"base_tone","state_keys":["base_tone"]},{"group":"screen","field":"warm_tones_enabled","state_keys":["warm_tones_enabled"]},{"group":"screen","field":"warm_tone_intensity","state_keys":["warm_tone_intensity"]},{"group":"screen","field":"warm_tone_override","state_keys":["warm_tone_override"]},{"group":"screen","field":"rotation","state_keys":["screen_rotation"]}];
+  var LIVE_RENDER_STATE_KEYS = ["screen_rotation","portrait_pairing","developer_features_enabled"];
   var LIVE_RENDER_STATE_PREFIXES = ["photo_metadata_","schedule_"];
-  var FIRMWARE_MANIFEST_URLS = {"stable":"https://jtenniswood.github.io/espframe/firmware/manifest.json","beta":"https://jtenniswood.github.io/espframe/firmware/beta/manifest.json"};
+  var FIRMWARE_MANIFEST_URLS = {"stable":"https://jtenniswood.github.io/espframe/firmware/manifest.json"};
   var DOCS_BASE_URL = "https://jtenniswood.github.io/espframe";
   var WEB_UI_TABS = [{"id":"immich","label":"Immich"},{"id":"settings","label":"Device"},{"id":"logs","label":"Logs"}];
-  var WEB_UI_CARDS = [{"id":"connection","label":"Connection","tab":"immich","function":"makeConnectionCard","settings":["conn_timeout"],"staticEntities":[],"manualEntities":["immich_url","api_key"]},{"id":"frequency","label":"Frequency","tab":"immich","function":"makeFrequencyCard","settings":["interval"],"staticEntities":[],"manualEntities":[]},{"id":"photo_source","label":"Photo Source","tab":"immich","function":"makePhotoSourceCard","settings":["photo_source","album_order"],"staticEntities":["album_ids","album_labels","person_ids","person_labels","tag_ids","tag_labels"],"manualEntities":["apply_photo_source"]},{"id":"advanced_filters","label":"Advanced Filters","tab":"immich","function":"makeAdvancedFiltersCard","settings":["date_filter_enabled","date_filter_mode","date_from","date_to","relative_amount","relative_unit"],"staticEntities":[],"manualEntities":["apply_photo_source"]},{"id":"layout","label":"Layout","tab":"immich","function":"makeLayoutCard","settings":["portrait_pairing","photo_orientation","display_mode"],"staticEntities":[],"manualEntities":[]},{"id":"metadata","label":"Metadata","tab":"immich","function":"makeMetadataCard","settings":["photo_metadata_date_enabled","photo_metadata_location_enabled","photo_metadata_date_format","photo_metadata_date_taken_format"],"staticEntities":[],"manualEntities":[]},{"id":"screen_brightness","label":"Screen Brightness","tab":"settings","function":"makeScreenBrightnessCard","settings":["brightness_day","brightness_night"],"staticEntities":["sunrise","sunset"],"manualEntities":[]},{"id":"screen_tone","label":"Screen Tone","tab":"settings","function":"makeScreenToneCard","settings":["base_tone_enabled","base_tone","warm_tones_enabled","warm_tone_intensity","warm_tone_override"],"staticEntities":[],"manualEntities":[]},{"id":"night_schedule","label":"Night Schedule","tab":"settings","function":"makeNightScheduleCard","settings":["schedule_enabled","schedule_on_hour","schedule_off_hour","schedule_wake_timeout"],"staticEntities":["sunrise","sunset"],"manualEntities":[]},{"id":"rotation","label":"Rotation","tab":"settings","function":"makeRotationCard","settings":["screen_rotation"],"staticEntities":["developer_features_enabled"],"manualEntities":[]},{"id":"clock","label":"Clock","tab":"settings","function":"makeClockCard","settings":["clock_format"],"staticEntities":["show_clock","timezone","ntp_server_1","ntp_server_2","ntp_server_3"],"manualEntities":[]},{"id":"firmware","label":"Firmware","tab":"settings","function":"makeFirmwareCard","settings":["update_frequency","auto_update","beta_channel","firmware_manifest_url","firmware_beta_manifest_url"],"staticEntities":["firmware"],"manualEntities":["update","update_beta","firmware_check","reboot_screen"]},{"id":"wifi","label":"WiFi","tab":"settings","function":"makeWifiCard","settings":[],"staticEntities":["c6_current_firmware","c6_available_firmware"],"manualEntities":["c6_firmware_check","c6_firmware_install"]},{"id":"developer","label":"Developer","tab":"settings","function":"makeDeveloperCard","settings":[],"staticEntities":["developer_features_enabled"],"manualEntities":[]},{"id":"backup","label":"Backup","tab":"settings","function":"makeBackupCard","settings":[],"staticEntities":[],"manualEntities":[]}];
+  var WEB_UI_CARDS = [{"id":"connection","label":"Connection","tab":"immich","function":"makeConnectionCard","settings":["conn_timeout"],"staticEntities":[],"manualEntities":["immich_url","api_key"]},{"id":"frequency","label":"Frequency","tab":"immich","function":"makeFrequencyCard","settings":["interval"],"staticEntities":[],"manualEntities":[]},{"id":"photo_source","label":"Photo Source","tab":"immich","function":"makePhotoSourceCard","settings":["photo_source","album_order"],"staticEntities":["album_ids","album_labels","person_ids","person_labels","tag_ids","tag_labels"],"manualEntities":["apply_photo_source"]},{"id":"advanced_filters","label":"Advanced Filters","tab":"immich","function":"makeAdvancedFiltersCard","settings":["date_filter_enabled","date_filter_mode","date_from","date_to","relative_amount","relative_unit"],"staticEntities":[],"manualEntities":["apply_photo_source"]},{"id":"layout","label":"Layout","tab":"immich","function":"makeLayoutCard","settings":["portrait_pairing","photo_orientation","display_mode"],"staticEntities":[],"manualEntities":[]},{"id":"metadata","label":"Metadata","tab":"immich","function":"makeMetadataCard","settings":["photo_metadata_date_enabled","photo_metadata_location_enabled","photo_metadata_date_format","photo_metadata_date_taken_format"],"staticEntities":[],"manualEntities":[]},{"id":"screen_brightness","label":"Screen Brightness","tab":"settings","function":"makeScreenBrightnessCard","settings":["brightness_day","brightness_night"],"staticEntities":["sunrise","sunset"],"manualEntities":[]},{"id":"screen_tone","label":"Screen Tone","tab":"settings","function":"makeScreenToneCard","settings":["base_tone_enabled","base_tone","warm_tones_enabled","warm_tone_intensity","warm_tone_override"],"staticEntities":[],"manualEntities":[]},{"id":"night_schedule","label":"Night Schedule","tab":"settings","function":"makeNightScheduleCard","settings":["schedule_enabled","schedule_on_hour","schedule_off_hour","schedule_wake_timeout"],"staticEntities":["sunrise","sunset"],"manualEntities":[]},{"id":"rotation","label":"Rotation","tab":"settings","function":"makeRotationCard","settings":["screen_rotation"],"staticEntities":["developer_features_enabled"],"manualEntities":[]},{"id":"clock","label":"Clock","tab":"settings","function":"makeClockCard","settings":["clock_format"],"staticEntities":["show_clock","timezone","ntp_server_1","ntp_server_2","ntp_server_3"],"manualEntities":[]},{"id":"firmware","label":"Firmware","tab":"settings","function":"makeFirmwareCard","settings":["update_frequency","auto_update","firmware_manifest_url"],"staticEntities":["firmware"],"manualEntities":["update","firmware_check"]},{"id":"device_reboot","label":"Device Reboot","tab":"settings","function":"makeDeviceRebootCard","settings":[],"staticEntities":[],"manualEntities":["reboot_screen"]},{"id":"wifi","label":"WiFi","tab":"settings","function":"makeWifiCard","settings":[],"staticEntities":["c6_current_firmware","c6_available_firmware"],"manualEntities":["c6_firmware_check","c6_firmware_install"]},{"id":"developer","label":"Developer","tab":"settings","function":"makeDeveloperCard","settings":[],"staticEntities":["developer_features_enabled"],"manualEntities":[]},{"id":"backup","label":"Backup","tab":"settings","function":"makeBackupCard","settings":[],"staticEntities":[],"manualEntities":[]}];
   var WEB_UI_LOGS_RETAINED_LINES = 1000;
   var SUPPORT_URL = "https://www.buymeacoffee.com/jtenniswood";
   var SUPPORT_BUTTON_IMAGE_URL = "https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png";
@@ -32,8 +32,6 @@
     installed_version: "",
     latest_version: "",
     update_available: false,
-    beta_version: "",
-    beta_available: false,
     brightness_current: 0,
     sunrise: "",
     sunset: "",
@@ -881,14 +879,6 @@ if (typeof module !== "undefined") {
         S.installed_version !== S.latest_version;
       return;
     }
-    if (id === "update/Firmware: Update Beta") {
-      S.beta_version = d.latest_version || "";
-      S.beta_available =
-        S.beta_version &&
-        d.current_version &&
-        S.beta_version !== d.current_version;
-      return;
-    }
     var spec = ENTITY_STATE_MAP[id];
     if (!spec) return;
     var v = d.value != null ? d.value : d.state;
@@ -925,7 +915,7 @@ if (typeof module !== "undefined") {
   }
 
   // Generated from product metadata plus status-only fields; KEY_TO_ENTITY_ID derived from ENTITY_STATE_MAP.
-  var INITIAL_FETCH_KEYS = ["firmware","photo_source","album_order","date_filter_mode","relative_unit","photo_orientation","display_mode","interval","conn_timeout","screen_rotation","photo_metadata_date_format","photo_metadata_date_taken_format","clock_format","update_frequency","auto_update","beta_channel","firmware_manifest_url","firmware_beta_manifest_url","date_filter_enabled","date_from","date_to","relative_amount","schedule_enabled","schedule_on_hour","schedule_off_hour","schedule_wake_timeout","brightness_day","brightness_night","base_tone_enabled","base_tone","warm_tones_enabled","warm_tone_intensity","warm_tone_override","portrait_pairing","photo_metadata_date_enabled","photo_metadata_location_enabled","timezone","ntp_server_1","ntp_server_2","ntp_server_3","album_ids","album_labels","person_ids","person_labels","tag_ids","tag_labels","sunrise","sunset","developer_features_enabled","c6_current_firmware","c6_available_firmware"];
+  var INITIAL_FETCH_KEYS = ["firmware","photo_source","album_order","date_filter_mode","relative_unit","photo_orientation","display_mode","interval","conn_timeout","screen_rotation","photo_metadata_date_format","photo_metadata_date_taken_format","clock_format","update_frequency","auto_update","firmware_manifest_url","date_filter_enabled","date_from","date_to","relative_amount","schedule_enabled","schedule_on_hour","schedule_off_hour","schedule_wake_timeout","brightness_day","brightness_night","base_tone_enabled","base_tone","warm_tones_enabled","warm_tone_intensity","warm_tone_override","portrait_pairing","photo_metadata_date_enabled","photo_metadata_location_enabled","timezone","ntp_server_1","ntp_server_2","ntp_server_3","album_ids","album_labels","person_ids","person_labels","tag_ids","tag_labels","sunrise","sunset","developer_features_enabled","c6_current_firmware","c6_available_firmware"];
   function getEntityIdForStateKey(key) {
     var productSpec = PRODUCT_SETTINGS && PRODUCT_SETTINGS[key];
     if (productSpec && typeof productSpec.entity === "string") return productSpec.entity;
@@ -1209,16 +1199,11 @@ if (typeof module !== "undefined") {
     connStatus.id = "conn-status";
 
     function showSaved(msg) {
-      connStatus.innerHTML = '<span class="dot green"></span> ' + (msg || "Saved");
-      clearTimeout(connStatus._t);
-      connStatus._t = setTimeout(function () {
-        connStatus.textContent = "";
-      }, 3000);
+      setStatus(connStatus, msg || "Saved", "green", 3000);
     }
 
     function showConnectionError(msg) {
-      connStatus.innerHTML = '<span class="dot red"></span> ' + msg;
-      clearTimeout(connStatus._t);
+      setStatus(connStatus, msg, "red");
     }
 
     var urlField = makeConnectionUrlField(S.immich_url);
@@ -1331,10 +1316,6 @@ if (typeof module !== "undefined") {
       schedulePhotoSourceApply(0, { source: true });
     });
 
-    var removeIdIcon = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18\"/><path d=\"M8 6V4h8v2\"/><path d=\"M19 6l-1 14H6L5 6\"/><path d=\"M10 11v5\"/><path d=\"M14 11v5\"/></svg>";
-    var moveUpIcon = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 19V5\"/><path d=\"M5 12l7-7 7 7\"/></svg>";
-    var moveDownIcon = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14\"/><path d=\"M19 12l-7 7-7-7\"/></svg>";
-
     var albumOrderField = field("Album Order");
     albumOrderField.appendChild(
       selectFromOptions(productSettingOptions("album_order"), S.album_order, function (v) {
@@ -1344,196 +1325,111 @@ if (typeof module !== "undefined") {
     );
     albumOrderField.style.display = S.photo_source === "Album" ? "" : "none";
 
-    var albumField = field("Albums");
-    var albumIdList = el("div", "photo-id-list");
-    var albumInputs = [];
-    var albumLabelInputs = [];
-    var albumError = el("div", "field-error");
-    function getAlbumIdsValue() {
-      return albumInputs.map(function (inputEl) {
-        return inputEl.value.trim();
-      }).filter(Boolean).join(",");
-    }
-    function getAlbumLabelsValue() {
-      return buildPhotoLabelList(albumInputs, albumLabelInputs);
-    }
-    function refreshAlbumRemoveButtons() {
-      Array.prototype.forEach.call(albumIdList.querySelectorAll(".album-id-remove"), function (btn) {
-        btn.disabled = albumInputs.length <= 1;
-      });
-      Array.prototype.forEach.call(albumIdList.querySelectorAll(".album-id-up"), function (btn) {
-        btn.disabled = albumInputs.length <= 1 || Number(btn.getAttribute("data-index")) === 0;
-      });
-      Array.prototype.forEach.call(albumIdList.querySelectorAll(".album-id-down"), function (btn) {
-        btn.disabled = albumInputs.length <= 1 || Number(btn.getAttribute("data-index")) === albumInputs.length - 1;
-      });
-    }
-    function syncAlbumMoveButtonIndexes() {
-      Array.prototype.forEach.call(albumIdList.querySelectorAll(".photo-id-row"), function (row, index) {
-        Array.prototype.forEach.call(row.querySelectorAll(".album-id-up,.album-id-down"), function (btn) {
-          btn.setAttribute("data-index", String(index));
-        });
-      });
-    }
-    function moveAlbumIdRow(fromIndex, toIndex) {
-      if (toIndex < 0 || toIndex >= albumInputs.length || fromIndex === toIndex) return;
-      var row = albumInputs[fromIndex].closest(".photo-id-row");
-      var targetRow = albumInputs[toIndex].closest(".photo-id-row");
-      var movedInput = albumInputs.splice(fromIndex, 1)[0];
-      var movedLabel = albumLabelInputs.splice(fromIndex, 1)[0];
-      albumInputs.splice(toIndex, 0, movedInput);
-      albumLabelInputs.splice(toIndex, 0, movedLabel);
-      if (toIndex < fromIndex) albumIdList.insertBefore(row, targetRow);
-      else albumIdList.insertBefore(row, targetRow.nextSibling);
-      syncAlbumMoveButtonIndexes();
-      refreshAlbumRemoveButtons();
-      schedulePhotoSourceApply(0, { album: true, albumLabel: true });
-    }
-    function addAlbumIdRow(value, labelValue) {
-      var row = el("div", "photo-id-row");
-      var fields = el("div", "photo-id-fields");
-      var albumInput = input("text", value || "", "Paste album ID from Immich URL", MAX_PHOTO_ID_FIELD_LENGTH);
-      var albumLabelInput = input("text", labelValue || "", "What is it?", MAX_PHOTO_ID_FIELD_LENGTH);
-      var actions = el("div", "photo-id-row-actions");
-      var upBtn = el("button", "btn btn-secondary btn-icon album-id-up");
-      upBtn.type = "button";
-      upBtn.innerHTML = moveUpIcon;
-      upBtn.title = "Move album up";
-      upBtn.setAttribute("aria-label", "Move album up");
-      upBtn.onclick = function () {
-        var fromIndex = albumInputs.indexOf(albumInput);
-        moveAlbumIdRow(fromIndex, fromIndex - 1);
-      };
-      var downBtn = el("button", "btn btn-secondary btn-icon album-id-down");
-      downBtn.type = "button";
-      downBtn.innerHTML = moveDownIcon;
-      downBtn.title = "Move album down";
-      downBtn.setAttribute("aria-label", "Move album down");
-      downBtn.onclick = function () {
-        var fromIndex = albumInputs.indexOf(albumInput);
-        moveAlbumIdRow(fromIndex, fromIndex + 1);
-      };
-      var removeBtn = el("button", "btn btn-secondary btn-icon album-id-remove");
-      removeBtn.type = "button";
-      removeBtn.innerHTML = removeIdIcon;
-      removeBtn.title = "Remove album ID";
-      removeBtn.setAttribute("aria-label", "Remove album ID");
-      removeBtn.onclick = function () {
-        if (albumInputs.length <= 1) {
-          albumInput.value = "";
-          albumLabelInput.value = "";
-          schedulePhotoSourceApply(0, { album: true, albumLabel: true });
-          return;
-        }
-        var removeIndex = albumInputs.indexOf(albumInput);
-        albumInputs.splice(removeIndex, 1);
-        albumLabelInputs.splice(removeIndex, 1);
-        row.parentNode.removeChild(row);
-        syncAlbumMoveButtonIndexes();
-        refreshAlbumRemoveButtons();
-        schedulePhotoSourceApply(0, { album: true, albumLabel: true });
-      };
-      albumInput.oninput = function () {
-        schedulePhotoSourceApply(null, { album: true, albumLabel: true });
-      };
-      albumLabelInput.oninput = function () {
-        schedulePhotoSourceApply(null, { albumLabel: true });
-      };
-      fields.appendChild(albumInput);
-      fields.appendChild(albumLabelInput);
-      row.appendChild(fields);
-      actions.appendChild(upBtn);
-      actions.appendChild(downBtn);
-      actions.appendChild(removeBtn);
-      row.appendChild(actions);
-      albumIdList.appendChild(row);
-      albumInputs.push(albumInput);
-      albumLabelInputs.push(albumLabelInput);
-      syncAlbumMoveButtonIndexes();
-      refreshAlbumRemoveButtons();
-    }
-    var albumIds = splitPhotoIdList(S.album_ids);
-    var albumLabels = parsePhotoLabelList(S.album_labels);
-    for (var albumIndex = 0; albumIndex < Math.max(albumIds.length, albumLabels.length, 1); albumIndex++) {
-      addAlbumIdRow(albumIds[albumIndex] || "", albumLabels[albumIndex] || "");
-    }
-    var addAlbumRow = el("div", "photo-id-actions");
-    var addAlbumBtn = el("button", "btn btn-secondary");
-    addAlbumBtn.type = "button";
-    addAlbumBtn.textContent = "Add an album";
-    addAlbumBtn.title = "Add an album";
-    addAlbumBtn.setAttribute("aria-label", "Add an album");
-    addAlbumBtn.onclick = function () {
-      addAlbumIdRow("", "");
-      albumInputs[albumInputs.length - 1].focus();
-    };
-    addAlbumRow.appendChild(addAlbumBtn);
-    albumField.appendChild(albumIdList);
-    albumField.appendChild(addAlbumRow);
-    albumField.appendChild(albumError);
+    var albumList = photoIdListField({
+      label: "Albums",
+      idKey: "album_ids",
+      labelKey: "album_labels",
+      idPlaceholder: "Paste album ID from Immich URL",
+      labelPlaceholder: "What is it?",
+      addText: "Add an album",
+      removeTitle: "Remove album ID",
+      moveUpTitle: "Move album up",
+      moveDownTitle: "Move album down",
+      idChanges: { album: true, albumLabel: true },
+      labelChanges: { albumLabel: true },
+      clearChanges: { album: true, albumLabel: true },
+      reorderChanges: { album: true, albumLabel: true },
+      onChange: function (changes, delayMs) { schedulePhotoSourceApply(delayMs, changes); }
+    });
+    var albumField = albumList.field;
     albumField.style.display = S.photo_source === "Album" ? "" : "none";
 
-    var personField = field("People");
-    var personIdList = el("div", "photo-id-list");
-    var personInputs = [];
-    var personLabelInputs = [];
-    var personError = el("div", "field-error");
-    function getPersonIdsValue() {
-      return personInputs.map(function (inputEl) {
-        return inputEl.value.trim();
-      }).filter(Boolean).join(",");
-    }
-    function getPersonLabelsValue() {
-      return buildPhotoLabelList(personInputs, personLabelInputs);
-    }
+    var personList = photoIdListField({
+      label: "People",
+      idKey: "person_ids",
+      labelKey: "person_labels",
+      idPlaceholder: "Paste person ID from Immich URL",
+      labelPlaceholder: "Who is it?",
+      addText: "Add a person",
+      removeTitle: "Remove person ID",
+      moveUpTitle: "Move person up",
+      moveDownTitle: "Move person down",
+      idChanges: { person: true, personLabel: true },
+      labelChanges: { personLabel: true },
+      clearChanges: { person: true, personLabel: true },
+      reorderChanges: { person: true, personLabel: true },
+      onChange: function (changes, delayMs) { schedulePhotoSourceApply(delayMs, changes); }
+    });
+    var personField = personList.field;
+    personField.style.display = S.photo_source === "Person" ? "" : "none";
+
+    var tagList = photoIdListField({
+      label: "Tags",
+      idKey: "tag_ids",
+      labelKey: "tag_labels",
+      idPlaceholder: "Paste tag ID from Immich URL",
+      labelPlaceholder: "What tag is it?",
+      addText: "Add a tag",
+      removeTitle: "Remove tag ID",
+      moveUpTitle: "Move tag up",
+      moveDownTitle: "Move tag down",
+      idChanges: { tag: true, tagLabel: true },
+      labelChanges: { tagLabel: true },
+      clearChanges: { tag: true, tagLabel: true },
+      reorderChanges: { tag: true, tagLabel: true },
+      onChange: function (changes, delayMs) { schedulePhotoSourceApply(delayMs, changes); }
+    });
+    var tagField = tagList.field;
+    tagField.style.display = S.photo_source === "Tag" ? "" : "none";
+
     function validatePhotoSourceInputs(changes) {
-      albumError.textContent = "";
-      personError.textContent = "";
-      tagError.textContent = "";
+      albumList.error.textContent = "";
+      personList.error.textContent = "";
+      tagList.error.textContent = "";
       var srcVal = srcSel.value;
-      var albumTrim = getAlbumIdsValue();
-      var albumLabels = getAlbumLabelsValue();
-      var personTrim = getPersonIdsValue();
-      var personLabels = getPersonLabelsValue();
-      var tagTrim = getTagIdsValue();
-      var tagLabels = getTagLabelsValue();
+      var albumTrim = albumList.getIdsValue();
+      var albumLabels = albumList.getLabelsValue();
+      var personTrim = personList.getIdsValue();
+      var personLabels = personList.getLabelsValue();
+      var tagTrim = tagList.getIdsValue();
+      var tagLabels = tagList.getLabelsValue();
       var shouldValidateAlbum = changes.album || srcVal === "Album";
       var shouldValidatePerson = changes.person || srcVal === "Person";
       var shouldValidateTag = changes.tag || srcVal === "Tag";
       if (shouldValidateAlbum && photoIdFieldTooLong(albumTrim)) {
-        albumError.textContent = PHOTO_ID_FIELD_TOO_LONG;
+        albumList.error.textContent = PHOTO_ID_FIELD_TOO_LONG;
         return null;
       }
       if (shouldValidatePerson && photoIdFieldTooLong(personTrim)) {
-        personError.textContent = PHOTO_ID_FIELD_TOO_LONG;
+        personList.error.textContent = PHOTO_ID_FIELD_TOO_LONG;
         return null;
       }
       if (shouldValidateTag && photoIdFieldTooLong(tagTrim)) {
-        tagError.textContent = PHOTO_ID_FIELD_TOO_LONG;
+        tagList.error.textContent = PHOTO_ID_FIELD_TOO_LONG;
         return null;
       }
       if (shouldValidateAlbum && !isValidUuidList(albumTrim)) {
-        albumError.textContent = "Invalid UUID format";
+        albumList.error.textContent = "Invalid UUID format";
         return null;
       }
       if (changes.albumLabel && photoLabelFieldTooLong(albumLabels)) {
-        albumError.textContent = PHOTO_LABEL_FIELD_TOO_LONG;
+        albumList.error.textContent = PHOTO_LABEL_FIELD_TOO_LONG;
         return null;
       }
       if (shouldValidatePerson && !isValidUuidList(personTrim)) {
-        personError.textContent = "Invalid UUID format";
+        personList.error.textContent = "Invalid UUID format";
         return null;
       }
       if (changes.personLabel && photoLabelFieldTooLong(personLabels)) {
-        personError.textContent = PHOTO_LABEL_FIELD_TOO_LONG;
+        personList.error.textContent = PHOTO_LABEL_FIELD_TOO_LONG;
         return null;
       }
       if (shouldValidateTag && !isValidUuidList(tagTrim)) {
-        tagError.textContent = "Invalid UUID format";
+        tagList.error.textContent = "Invalid UUID format";
         return null;
       }
       if (changes.tagLabel && photoLabelFieldTooLong(tagLabels)) {
-        tagError.textContent = PHOTO_LABEL_FIELD_TOO_LONG;
+        tagList.error.textContent = PHOTO_LABEL_FIELD_TOO_LONG;
         return null;
       }
       return {
@@ -1615,148 +1511,6 @@ if (typeof module !== "undefined") {
       clearTimeout(photoSourceApplyTimer);
       photoSourceApplyTimer = setTimeout(applyPhotoSourceInputs, delayMs == null ? 600 : delayMs);
     }
-    function refreshPersonRemoveButtons() {
-      Array.prototype.forEach.call(personIdList.querySelectorAll(".person-id-remove"), function (btn) {
-        btn.disabled = personInputs.length <= 1;
-      });
-    }
-    function addPersonIdRow(value, labelValue) {
-      var row = el("div", "photo-id-row");
-      var fields = el("div", "photo-id-fields");
-      var personInput = input("text", value || "", "Paste person ID from Immich URL", MAX_PHOTO_ID_FIELD_LENGTH);
-      var personLabelInput = input("text", labelValue || "", "Who is it?", MAX_PHOTO_ID_FIELD_LENGTH);
-      var removeBtn = el("button", "btn btn-secondary btn-icon person-id-remove");
-      removeBtn.type = "button";
-      removeBtn.innerHTML = removeIdIcon;
-      removeBtn.title = "Remove person ID";
-      removeBtn.setAttribute("aria-label", "Remove person ID");
-      removeBtn.onclick = function () {
-        if (personInputs.length <= 1) {
-          personInput.value = "";
-          personLabelInput.value = "";
-          schedulePhotoSourceApply(0, { person: true, personLabel: true });
-          return;
-        }
-        var removeIndex = personInputs.indexOf(personInput);
-        personInputs.splice(removeIndex, 1);
-        personLabelInputs.splice(removeIndex, 1);
-        row.parentNode.removeChild(row);
-        refreshPersonRemoveButtons();
-        schedulePhotoSourceApply(0, { person: true, personLabel: true });
-      };
-      personInput.oninput = function () {
-        schedulePhotoSourceApply(null, { person: true, personLabel: true });
-      };
-      personLabelInput.oninput = function () {
-        schedulePhotoSourceApply(null, { personLabel: true });
-      };
-      fields.appendChild(personInput);
-      fields.appendChild(personLabelInput);
-      row.appendChild(fields);
-      row.appendChild(removeBtn);
-      personIdList.appendChild(row);
-      personInputs.push(personInput);
-      personLabelInputs.push(personLabelInput);
-      refreshPersonRemoveButtons();
-    }
-    var personIds = splitPhotoIdList(S.person_ids);
-    var personLabels = parsePhotoLabelList(S.person_labels);
-    for (var personIndex = 0; personIndex < Math.max(personIds.length, personLabels.length, 1); personIndex++) {
-      addPersonIdRow(personIds[personIndex] || "", personLabels[personIndex] || "");
-    }
-    var addPersonRow = el("div", "photo-id-actions");
-    var addPersonBtn = el("button", "btn btn-secondary");
-    addPersonBtn.type = "button";
-    addPersonBtn.textContent = "Add a person";
-    addPersonBtn.title = "Add a person";
-    addPersonBtn.setAttribute("aria-label", "Add a person");
-    addPersonBtn.onclick = function () {
-      addPersonIdRow("", "");
-      personInputs[personInputs.length - 1].focus();
-    };
-    addPersonRow.appendChild(addPersonBtn);
-    personField.appendChild(personIdList);
-    personField.appendChild(addPersonRow);
-    personField.appendChild(personError);
-    personField.style.display = S.photo_source === "Person" ? "" : "none";
-
-    var tagField = field("Tags");
-    var tagIdList = el("div", "photo-id-list");
-    var tagInputs = [];
-    var tagLabelInputs = [];
-    var tagError = el("div", "field-error");
-    function getTagIdsValue() {
-      return tagInputs.map(function (inputEl) {
-        return inputEl.value.trim();
-      }).filter(Boolean).join(",");
-    }
-    function getTagLabelsValue() {
-      return buildPhotoLabelList(tagInputs, tagLabelInputs);
-    }
-    function refreshTagRemoveButtons() {
-      Array.prototype.forEach.call(tagIdList.querySelectorAll(".tag-id-remove"), function (btn) {
-        btn.disabled = tagInputs.length <= 1;
-      });
-    }
-    function addTagIdRow(value, labelValue) {
-      var row = el("div", "photo-id-row");
-      var fields = el("div", "photo-id-fields");
-      var tagInput = input("text", value || "", "Paste tag ID from Immich URL", MAX_PHOTO_ID_FIELD_LENGTH);
-      var tagLabelInput = input("text", labelValue || "", "What tag is it?", MAX_PHOTO_ID_FIELD_LENGTH);
-      var removeBtn = el("button", "btn btn-secondary btn-icon tag-id-remove");
-      removeBtn.type = "button";
-      removeBtn.innerHTML = removeIdIcon;
-      removeBtn.title = "Remove tag ID";
-      removeBtn.setAttribute("aria-label", "Remove tag ID");
-      removeBtn.onclick = function () {
-        if (tagInputs.length <= 1) {
-          tagInput.value = "";
-          tagLabelInput.value = "";
-          schedulePhotoSourceApply(0, { tag: true, tagLabel: true });
-          return;
-        }
-        var removeIndex = tagInputs.indexOf(tagInput);
-        tagInputs.splice(removeIndex, 1);
-        tagLabelInputs.splice(removeIndex, 1);
-        row.parentNode.removeChild(row);
-        refreshTagRemoveButtons();
-        schedulePhotoSourceApply(0, { tag: true, tagLabel: true });
-      };
-      tagInput.oninput = function () {
-        schedulePhotoSourceApply(null, { tag: true, tagLabel: true });
-      };
-      tagLabelInput.oninput = function () {
-        schedulePhotoSourceApply(null, { tagLabel: true });
-      };
-      fields.appendChild(tagInput);
-      fields.appendChild(tagLabelInput);
-      row.appendChild(fields);
-      row.appendChild(removeBtn);
-      tagIdList.appendChild(row);
-      tagInputs.push(tagInput);
-      tagLabelInputs.push(tagLabelInput);
-      refreshTagRemoveButtons();
-    }
-    var tagIds = splitPhotoIdList(S.tag_ids);
-    var tagLabels = parsePhotoLabelList(S.tag_labels);
-    for (var tagIndex = 0; tagIndex < Math.max(tagIds.length, tagLabels.length, 1); tagIndex++) {
-      addTagIdRow(tagIds[tagIndex] || "", tagLabels[tagIndex] || "");
-    }
-    var addTagRow = el("div", "photo-id-actions");
-    var addTagBtn = el("button", "btn btn-secondary");
-    addTagBtn.type = "button";
-    addTagBtn.textContent = "Add a tag";
-    addTagBtn.title = "Add a tag";
-    addTagBtn.setAttribute("aria-label", "Add a tag");
-    addTagBtn.onclick = function () {
-      addTagIdRow("", "");
-      tagInputs[tagInputs.length - 1].focus();
-    };
-    addTagRow.appendChild(addTagBtn);
-    tagField.appendChild(tagIdList);
-    tagField.appendChild(addTagRow);
-    tagField.appendChild(tagError);
-    tagField.style.display = S.photo_source === "Tag" ? "" : "none";
 
     fSrc.appendChild(srcSel);
     srcBody.appendChild(fSrc);
@@ -1784,22 +1538,18 @@ if (typeof module !== "undefined") {
     var filterBadge = makeBadge(isFilterActive(S.date_filter_enabled));
     var filterBody = el("div");
     var filterApplyTimer = null;
-    var fFilterToggle = field("");
-    var filterTr = el("div", "toggle-row");
-    filterTr.innerHTML = "<span>Filter by Date</span>";
-    var filterTog = el("div", S.date_filter_enabled ? "toggle on" : "toggle");
     var filterDetails = el("div");
     filterDetails.style.display = S.date_filter_enabled ? "" : "none";
-    filterTog.onclick = function () {
-      S.date_filter_enabled = !S.date_filter_enabled;
-      filterTog.className = S.date_filter_enabled ? "toggle on" : "toggle";
-      filterDetails.style.display = S.date_filter_enabled ? "" : "none";
-      filterBadge.className = "on-badge" + (isFilterActive(S.date_filter_enabled) ? " active" : "");
-      scheduleFilterApply();
-    };
-    filterTr.appendChild(filterTog);
-    fFilterToggle.appendChild(filterTr);
-    filterBody.appendChild(fFilterToggle);
+    filterBody.appendChild(toggleSettingRow({
+      label: "Filter by Date",
+      value: S.date_filter_enabled,
+      getValue: function () { return S.date_filter_enabled; },
+      setValue: function (value) { S.date_filter_enabled = value; },
+      details: filterDetails,
+      badge: filterBadge,
+      badgeActive: function () { return isFilterActive(S.date_filter_enabled); },
+      onChange: scheduleFilterApply
+    }).field);
 
     var fFilterMode = field("Mode");
     var modeVal = S.date_filter_mode;
@@ -1935,26 +1685,19 @@ if (typeof module !== "undefined") {
     // Layout
     var photoBody = el("div");
 
-    var fPairToggle = field("");
     var portraitRotationActive = isPortraitScreenRotation(effectiveScreenRotationForUi());
     var pairingEnabled = S.portrait_pairing && !portraitRotationActive;
-    var pairTr = el("div", "toggle-row");
-    pairTr.innerHTML = "<span>Portrait Pairing</span>";
-    var pairTog = el("div", pairingEnabled ? "toggle on" : "toggle");
-    if (portraitRotationActive) {
-      pairTog.style.opacity = ".35";
-      pairTog.style.cursor = "not-allowed";
-      pairTog.title = "Portrait pairing is disabled while the screen is in portrait rotation";
-    }
-    pairTog.onclick = function () {
-      if (portraitRotationActive) return;
-      S.portrait_pairing = !S.portrait_pairing;
-      pairTog.className = S.portrait_pairing ? "toggle on" : "toggle";
-      saveSetting("portrait_pairing", S.portrait_pairing);
-    };
-    pairTr.appendChild(pairTog);
-    fPairToggle.appendChild(pairTr);
-    photoBody.appendChild(fPairToggle);
+    photoBody.appendChild(toggleSettingRow({
+      label: "Portrait Pairing",
+      value: pairingEnabled,
+      getValue: function () { return S.portrait_pairing; },
+      setValue: function (value) { S.portrait_pairing = value; },
+      disabled: portraitRotationActive,
+      disabledTitle: "Portrait pairing is disabled while the screen is in portrait rotation",
+      onChange: function () {
+        saveSetting("portrait_pairing", S.portrait_pairing);
+      }
+    }).field);
 
     var fPhotoOrientation = field("Photo Orientation");
     fPhotoOrientation.appendChild(
@@ -1994,18 +1737,16 @@ if (typeof module !== "undefined") {
       metadataBadge.className = "on-badge" + (metadataIsActive() ? " active" : "");
     }
 
-    var fMetadataDate = field("");
-    var metadataDateTr = el("div", "toggle-row");
-    metadataDateTr.innerHTML = "<span>Date</span>";
-    var metadataDateTog = el("div", S.photo_metadata_date_enabled ? "toggle on" : "toggle");
-    metadataDateTog.onclick = function () {
-      S.photo_metadata_date_enabled = !S.photo_metadata_date_enabled;
-      metadataDateTog.className = S.photo_metadata_date_enabled ? "toggle on" : "toggle";
-      refreshMetadataDetails();
-      saveSetting("photo_metadata_date_enabled", S.photo_metadata_date_enabled);
-    };
-    metadataDateTr.appendChild(metadataDateTog);
-    fMetadataDate.appendChild(metadataDateTr);
+    var fMetadataDate = toggleSettingRow({
+      label: "Date",
+      value: S.photo_metadata_date_enabled,
+      getValue: function () { return S.photo_metadata_date_enabled; },
+      setValue: function (value) { S.photo_metadata_date_enabled = value; },
+      onChange: function () {
+        refreshMetadataDetails();
+        saveSetting("photo_metadata_date_enabled", S.photo_metadata_date_enabled);
+      }
+    }).field;
 
     var fMetadataDateFormat = field("Date Format");
     fMetadataDateFormat.appendChild(
@@ -2024,18 +1765,16 @@ if (typeof module !== "undefined") {
     );
     metadataDateDetails.appendChild(fMetadataDateTakenFormat);
 
-    var fMetadataLocation = field("");
-    var metadataLocationTr = el("div", "toggle-row");
-    metadataLocationTr.innerHTML = "<span>Location</span>";
-    var metadataLocationTog = el("div", S.photo_metadata_location_enabled ? "toggle on" : "toggle");
-    metadataLocationTog.onclick = function () {
-      S.photo_metadata_location_enabled = !S.photo_metadata_location_enabled;
-      metadataLocationTog.className = S.photo_metadata_location_enabled ? "toggle on" : "toggle";
-      refreshMetadataDetails();
-      saveSetting("photo_metadata_location_enabled", S.photo_metadata_location_enabled);
-    };
-    metadataLocationTr.appendChild(metadataLocationTog);
-    fMetadataLocation.appendChild(metadataLocationTr);
+    var fMetadataLocation = toggleSettingRow({
+      label: "Location",
+      value: S.photo_metadata_location_enabled,
+      getValue: function () { return S.photo_metadata_location_enabled; },
+      setValue: function (value) { S.photo_metadata_location_enabled = value; },
+      onChange: function () {
+        refreshMetadataDetails();
+        saveSetting("photo_metadata_location_enabled", S.photo_metadata_location_enabled);
+      }
+    }).field;
     metadataBody.appendChild(fMetadataLocation);
     metadataBody.appendChild(fMetadataDate);
     metadataBody.appendChild(metadataDateDetails);
@@ -2049,47 +1788,19 @@ if (typeof module !== "undefined") {
     // Screen Brightness
     var dnDetails = el("div");
 
-    var fDayBrt = field("Daytime Brightness");
-    var rwDay = el("div", "range-wrap");
-    var daySlider = document.createElement("input");
-    daySlider.type = "range";
-    daySlider.min = productNumberMin("brightness_day", 10);
-    daySlider.max = productNumberMax("brightness_day", 100);
-    daySlider.step = productNumberStep("brightness_day", 5);
-    daySlider.value = S.brightness_day;
-    var dayVal = el("span", "range-val");
-    dayVal.textContent = Math.round(S.brightness_day) + "%";
-    daySlider.oninput = function () {
-      dayVal.textContent = daySlider.value + "%";
-    };
-    daySlider.onchange = function () {
-      saveSetting("brightness_day", daySlider.value);
-    };
-    rwDay.appendChild(daySlider);
-    rwDay.appendChild(dayVal);
-    fDayBrt.appendChild(rwDay);
-    dnDetails.appendChild(fDayBrt);
+    dnDetails.appendChild(rangeSettingField("Daytime Brightness", "brightness_day", {
+      minFallback: 10,
+      maxFallback: 100,
+      stepFallback: 5,
+      valueSuffix: "%"
+    }).field);
 
-    var fNightBrt = field("Nighttime Brightness");
-    var rwNight = el("div", "range-wrap");
-    var nightSlider = document.createElement("input");
-    nightSlider.type = "range";
-    nightSlider.min = productNumberMin("brightness_night", 10);
-    nightSlider.max = productNumberMax("brightness_night", 100);
-    nightSlider.step = productNumberStep("brightness_night", 5);
-    nightSlider.value = S.brightness_night;
-    var nightVal = el("span", "range-val");
-    nightVal.textContent = Math.round(S.brightness_night) + "%";
-    nightSlider.oninput = function () {
-      nightVal.textContent = nightSlider.value + "%";
-    };
-    nightSlider.onchange = function () {
-      saveSetting("brightness_night", nightSlider.value);
-    };
-    rwNight.appendChild(nightSlider);
-    rwNight.appendChild(nightVal);
-    fNightBrt.appendChild(rwNight);
-    dnDetails.appendChild(fNightBrt);
+    dnDetails.appendChild(rangeSettingField("Nighttime Brightness", "brightness_night", {
+      minFallback: 10,
+      maxFallback: 100,
+      stepFallback: 5,
+      valueSuffix: "%"
+    }).field);
 
     var fSunInfo = el("div", "field sun-info");
     fSunInfo.id = "sun-info";
@@ -2108,100 +1819,61 @@ if (typeof module !== "undefined") {
     var toneBadge = makeBadge(S.base_tone_enabled || S.warm_tones_enabled);
     var warmBody = el("div");
 
-    var fBaseToneToggle = field("");
-    var baseTr = el("div", "toggle-row");
-    baseTr.innerHTML = "<span>Screen Tone Adjustment</span>";
-    var baseTog = el("div", S.base_tone_enabled ? "toggle on" : "toggle");
     var baseDetails = el("div");
     baseDetails.style.display = S.base_tone_enabled ? "" : "none";
-
-    baseTog.onclick = function () {
-      S.base_tone_enabled = !S.base_tone_enabled;
-      baseTog.className = S.base_tone_enabled ? "toggle on" : "toggle";
-      baseDetails.style.display = S.base_tone_enabled ? "" : "none";
-      toneBadge.className = "on-badge" + ((S.base_tone_enabled || S.warm_tones_enabled) ? " active" : "");
-      saveSetting("base_tone_enabled", S.base_tone_enabled);
-    };
-    baseTr.appendChild(baseTog);
-    fBaseToneToggle.appendChild(baseTr);
+    var fBaseToneToggle = toggleSettingRow({
+      label: "Screen Tone Adjustment",
+      value: S.base_tone_enabled,
+      getValue: function () { return S.base_tone_enabled; },
+      setValue: function (value) { S.base_tone_enabled = value; },
+      details: baseDetails,
+      badge: toneBadge,
+      badgeActive: function () { return S.base_tone_enabled || S.warm_tones_enabled; },
+      onChange: function () { saveSetting("base_tone_enabled", S.base_tone_enabled); }
+    }).field;
     fBaseToneToggle.style.marginBottom = "8px";
     warmBody.appendChild(fBaseToneToggle);
 
-    var fBaseTone = field("");
-    var rwBase = el("div", "range-wrap");
-    var baseLabelL = el("span", "range-label");
-    baseLabelL.textContent = "Cooler";
-    var baseSlider = document.createElement("input");
-    baseSlider.type = "range";
-    baseSlider.min = productNumberMin("base_tone", 0);
-    baseSlider.max = productNumberMax("base_tone", 100);
-    baseSlider.step = productNumberStep("base_tone", 5);
-    baseSlider.value = S.base_tone;
-    baseSlider.onchange = function () {
-      saveSetting("base_tone", baseSlider.value);
-    };
-    var baseLabelR = el("span", "range-label");
-    baseLabelR.textContent = "Warmer";
-    rwBase.appendChild(baseLabelL);
-    rwBase.appendChild(baseSlider);
-    rwBase.appendChild(baseLabelR);
-    fBaseTone.appendChild(rwBase);
-    baseDetails.appendChild(fBaseTone);
+    baseDetails.appendChild(rangeSettingField("", "base_tone", {
+      minFallback: 0,
+      maxFallback: 100,
+      stepFallback: 5,
+      leftLabel: "Cooler",
+      rightLabel: "Warmer"
+    }).field);
     baseDetails.style.marginBottom = "28px";
     warmBody.appendChild(baseDetails);
 
-    var fWarmToggle = field("");
-    var warmTr = el("div", "toggle-row");
-    warmTr.innerHTML = "<span>Night Tone Adjustment</span>";
-    var warmTog = el("div", S.warm_tones_enabled ? "toggle on" : "toggle");
     var nightDetails = el("div");
     nightDetails.style.display = S.warm_tones_enabled ? "" : "none";
-
-    warmTog.onclick = function () {
-      S.warm_tones_enabled = !S.warm_tones_enabled;
-      warmTog.className = S.warm_tones_enabled ? "toggle on" : "toggle";
-      nightDetails.style.display = S.warm_tones_enabled ? "" : "none";
-      toneBadge.className = "on-badge" + ((S.base_tone_enabled || S.warm_tones_enabled) ? " active" : "");
-      saveSetting("warm_tones_enabled", S.warm_tones_enabled);
-    };
-    warmTr.appendChild(warmTog);
-    fWarmToggle.appendChild(warmTr);
+    var fWarmToggle = toggleSettingRow({
+      label: "Night Tone Adjustment",
+      value: S.warm_tones_enabled,
+      getValue: function () { return S.warm_tones_enabled; },
+      setValue: function (value) { S.warm_tones_enabled = value; },
+      details: nightDetails,
+      badge: toneBadge,
+      badgeActive: function () { return S.base_tone_enabled || S.warm_tones_enabled; },
+      onChange: function () { saveSetting("warm_tones_enabled", S.warm_tones_enabled); }
+    }).field;
     fWarmToggle.style.marginBottom = "8px";
     warmBody.appendChild(fWarmToggle);
 
-    var fWarmInt = field("");
-    var rwWarm = el("div", "range-wrap");
-    var warmLabelL = el("span", "range-label");
-    warmLabelL.textContent = "Cooler";
-    var warmSlider = document.createElement("input");
-    warmSlider.type = "range";
-    warmSlider.min = productNumberMin("warm_tone_intensity", 10);
-    warmSlider.max = productNumberMax("warm_tone_intensity", 100);
-    warmSlider.step = productNumberStep("warm_tone_intensity", 5);
-    warmSlider.value = S.warm_tone_intensity;
-    warmSlider.onchange = function () {
-      saveSetting("warm_tone_intensity", warmSlider.value);
-    };
-    var warmLabelR = el("span", "range-label");
-    warmLabelR.textContent = "Warmer";
-    rwWarm.appendChild(warmLabelL);
-    rwWarm.appendChild(warmSlider);
-    rwWarm.appendChild(warmLabelR);
-    fWarmInt.appendChild(rwWarm);
-    nightDetails.appendChild(fWarmInt);
+    nightDetails.appendChild(rangeSettingField("", "warm_tone_intensity", {
+      minFallback: 10,
+      maxFallback: 100,
+      stepFallback: 5,
+      leftLabel: "Cooler",
+      rightLabel: "Warmer"
+    }).field);
 
-    var fOverride = field("");
-    var overTr = el("div", "toggle-row");
-    overTr.innerHTML = "<span>Turn on until sunrise</span>";
-    var overTog = el("div", S.warm_tone_override ? "toggle on" : "toggle");
-    overTog.onclick = function () {
-      S.warm_tone_override = !S.warm_tone_override;
-      overTog.className = S.warm_tone_override ? "toggle on" : "toggle";
-      saveSetting("warm_tone_override", S.warm_tone_override);
-    };
-    overTr.appendChild(overTog);
-    fOverride.appendChild(overTr);
-    nightDetails.appendChild(fOverride);
+    nightDetails.appendChild(toggleSettingRow({
+      label: "Turn on until sunrise",
+      value: S.warm_tone_override,
+      getValue: function () { return S.warm_tone_override; },
+      setValue: function (value) { S.warm_tone_override = value; },
+      onChange: function () { saveSetting("warm_tone_override", S.warm_tone_override); }
+    }).field);
 
     warmBody.appendChild(nightDetails);
     return makeCollapsibleCard("Screen Tone", warmBody, true, toneBadge);
@@ -2212,59 +1884,20 @@ if (typeof module !== "undefined") {
     // Schedule
     var schedBadge = makeBadge(S.schedule_enabled);
     var schedBody = el("div");
-    var fSchedToggle = field("");
-    var schedTr = el("div", "toggle-row");
-    schedTr.innerHTML = "<span>Schedule Screen Off</span>";
-    var schedTog = el("div", S.schedule_enabled ? "toggle on" : "toggle");
     var schedDetails = el("div");
     schedDetails.style.display = S.schedule_enabled ? "" : "none";
+    schedBody.appendChild(toggleSettingRow({
+      label: "Schedule Screen Off",
+      value: S.schedule_enabled,
+      getValue: function () { return S.schedule_enabled; },
+      setValue: function (value) { S.schedule_enabled = value; },
+      details: schedDetails,
+      badge: schedBadge,
+      onChange: function () { saveSetting("schedule_enabled", S.schedule_enabled); }
+    }).field);
 
-    schedTog.onclick = function () {
-      S.schedule_enabled = !S.schedule_enabled;
-      schedTog.className = S.schedule_enabled ? "toggle on" : "toggle";
-      schedDetails.style.display = S.schedule_enabled ? "" : "none";
-      schedBadge.className = "on-badge" + (S.schedule_enabled ? " active" : "");
-      saveSetting("schedule_enabled", S.schedule_enabled);
-    };
-    schedTr.appendChild(schedTog);
-    fSchedToggle.appendChild(schedTr);
-    schedBody.appendChild(fSchedToggle);
-
-    var fOnTime = field("On Time");
-    var onSel = document.createElement("select");
-    onSel.className = "select";
-    var scheduleOnMin = productNumberMin("schedule_on_hour", 0);
-    var scheduleOnMax = productNumberMax("schedule_on_hour", 23);
-    for (var h = scheduleOnMin; h <= scheduleOnMax; h++) {
-      var o = document.createElement("option");
-      o.value = h;
-      o.textContent = formatHour(h);
-      if (h === Math.round(S.schedule_on_hour)) o.selected = true;
-      onSel.appendChild(o);
-    }
-    onSel.onchange = function () {
-      saveSetting("schedule_on_hour", parseInt(onSel.value));
-    };
-    fOnTime.appendChild(onSel);
-    schedDetails.appendChild(fOnTime);
-
-    var fOffTime = field("Off Time");
-    var offSel = document.createElement("select");
-    offSel.className = "select";
-    var scheduleOffMin = productNumberMin("schedule_off_hour", 0);
-    var scheduleOffMax = productNumberMax("schedule_off_hour", 23);
-    for (var h2 = scheduleOffMin; h2 <= scheduleOffMax; h2++) {
-      var o2 = document.createElement("option");
-      o2.value = h2;
-      o2.textContent = formatHour(h2);
-      if (h2 === Math.round(S.schedule_off_hour)) o2.selected = true;
-      offSel.appendChild(o2);
-    }
-    offSel.onchange = function () {
-      saveSetting("schedule_off_hour", parseInt(offSel.value));
-    };
-    fOffTime.appendChild(offSel);
-    schedDetails.appendChild(fOffTime);
+    schedDetails.appendChild(hourSelectSettingField("On Time", "schedule_on_hour"));
+    schedDetails.appendChild(hourSelectSettingField("Off Time", "schedule_off_hour"));
 
     var fWakeTimeout = field("When Woken, Idle Time To Screen Off");
     var scheduleWakeMin = productNumberMin("schedule_wake_timeout", 10);
@@ -2311,19 +1944,14 @@ if (typeof module !== "undefined") {
     // Clock
     var clockBadge = makeBadge(S.show_clock);
     var clkBody = el("div");
-    var f5 = field("");
-    var tr = el("div", "toggle-row");
-    tr.innerHTML = "<span>Show Clock</span>";
-    var tog = el("div", S.show_clock ? "toggle on" : "toggle");
-    tog.onclick = function () {
-      S.show_clock = !S.show_clock;
-      tog.className = S.show_clock ? "toggle on" : "toggle";
-      clockBadge.className = "on-badge" + (S.show_clock ? " active" : "");
-      saveSetting("show_clock", S.show_clock);
-    };
-    tr.appendChild(tog);
-    f5.appendChild(tr);
-    clkBody.appendChild(f5);
+    clkBody.appendChild(toggleSettingRow({
+      label: "Show Clock",
+      value: S.show_clock,
+      getValue: function () { return S.show_clock; },
+      setValue: function (value) { S.show_clock = value; },
+      badge: clockBadge,
+      onChange: function () { saveSetting("show_clock", S.show_clock); }
+    }).field);
 
     var f6 = field("Format");
     f6.appendChild(
@@ -2348,91 +1976,35 @@ if (typeof module !== "undefined") {
     function makeFirmwareCard() {
     // Firmware
     var fwBody = el("div", "fw-body");
-    var versionRow = el("div", "field fw-row");
-    var versionLabel = el("span", "fw-label");
-    versionLabel.innerHTML = '<span style="color:var(--text2)">Installed</span> ' +
-      esc(displayVersion(S.firmware || S.installed_version, "Dev"));
-    var checkBtn = el("button", "btn btn-secondary btn-sm");
-    checkBtn.textContent = "Check for Update";
+    var versionLabel = textLabel("Installed", displayVersion(S.firmware || S.installed_version, "Dev"));
+    var checkBtn = button("Check for Update", "btn btn-secondary btn-sm");
     var statusMsg = el("span", "fw-status");
-    versionRow.appendChild(versionLabel);
     var checkWrap = el("div");
     checkWrap.className = "check-wrap";
     checkWrap.appendChild(statusMsg);
     checkWrap.appendChild(checkBtn);
-    versionRow.appendChild(checkWrap);
     var versionBlock = el("div");
-    versionBlock.appendChild(versionRow);
+    versionBlock.appendChild(actionRow(versionLabel, checkWrap));
     fwBody.appendChild(versionBlock);
 
     var updatesSection = el("div", "fw-updates");
     var updateRow = el("div");
     updatesSection.appendChild(updateRow);
-    var betaRow = el("div");
-    updatesSection.appendChild(betaRow);
     fwBody.appendChild(updatesSection);
-
-    var rebootRow = el("div", "field fw-row");
-    var rebootLabel = el("span", "fw-label");
-    rebootLabel.textContent = "Device Reboot";
-    var rebootBtn = el("button", "btn btn-secondary btn-sm");
-    rebootBtn.textContent = "Reboot Screen";
-    rebootBtn.onclick = function () {
-      rebootBtn.disabled = true;
-      rebootBtn.textContent = "Rebooting...";
-      post(endpoints.reboot_screen + "/press")
-        .catch(function () {
-          // Shared request helpers already surface failures in the UI.
-        })
-        .finally(function () {
-          setTimeout(function () {
-            rebootBtn.disabled = false;
-            rebootBtn.textContent = "Reboot Screen";
-          }, 3000);
-        });
-    };
-    rebootRow.appendChild(rebootLabel);
-    rebootRow.appendChild(rebootBtn);
-    fwBody.appendChild(rebootRow);
 
     function renderUpdateRow() {
       updateRow.innerHTML = "";
       if (!S.update_available) return;
-      var row = el("div", "field fw-row");
-      var label = el("span", "fw-label");
-      label.innerHTML = '<span style="color:var(--text2)">Stable</span> ' + esc(S.latest_version);
-      var installBtn = el("button", "btn btn-primary btn-sm");
-      installBtn.textContent = "Install";
-      installBtn.onclick = function () {
+      var label = textLabel("Stable", S.latest_version);
+      var installBtn = button("Install", "btn btn-primary btn-sm", function () {
         installBtn.disabled = true;
         installBtn.textContent = "Installing\u2026";
         post(endpoints.update + "/install");
-      };
-      row.appendChild(label);
-      row.appendChild(installBtn);
-      updateRow.appendChild(row);
-    }
-
-    function renderBetaRow() {
-      betaRow.innerHTML = "";
-      if (!S.beta_available) return;
-      var row = el("div", "field fw-row");
-      var label = el("span", "fw-label");
-      label.innerHTML = '<span style="color:var(--text2)">Pre-release</span> ' + esc(S.beta_version);
-      var betaBtn = el("button", "btn btn-secondary btn-sm");
-      betaBtn.textContent = "Install";
-      betaBtn.onclick = function () {
-        betaBtn.disabled = true;
-        betaBtn.textContent = "Installing\u2026";
-        post(endpoints.update_beta + "/install");
-      };
-      row.appendChild(label);
-      row.appendChild(betaBtn);
-      betaRow.appendChild(row);
+      });
+      updateRow.appendChild(actionRow(label, installBtn));
     }
 
     renderUpdateRow();
-    renderBetaRow();
 
     checkBtn.onclick = function () {
       checkBtn.disabled = true;
@@ -2459,23 +2031,7 @@ if (typeof module !== "undefined") {
             S.latest_version = data.latest_version || data.value;
             renderUpdateRow();
           }
-          if (!S.beta_channel) {
-            S.beta_available = false;
-            S.beta_version = "";
-            renderBetaRow();
-            return null;
-          }
-          return safeGet(endpoints.update_beta);
-        })
-        .then(function (betaData) {
-          if (betaData && (betaData.latest_version || betaData.value)) {
-            S.beta_version = betaData.latest_version || betaData.value;
-            S.beta_available = betaData.current_version
-              ? betaData.latest_version !== betaData.current_version
-              : betaData.state === "UPDATE AVAILABLE";
-          }
-          renderBetaRow();
-          if (!S.update_available && !S.beta_available) {
+          if (!S.update_available) {
             statusMsg.textContent = "Up to date";
             statusMsg.style.color = "var(--success)";
           }
@@ -2497,39 +2053,15 @@ if (typeof module !== "undefined") {
     );
     fwBody.appendChild(freqField);
 
-    var betaChannelField = field("");
-    var betaChannelRow = el("div", "toggle-row");
-    betaChannelRow.innerHTML = "<span>Beta Channel</span>";
-    var betaChannelToggle = el("div", S.beta_channel ? "toggle on" : "toggle");
-    betaChannelToggle.onclick = function () {
-      S.beta_channel = !S.beta_channel;
-      betaChannelToggle.className = S.beta_channel ? "toggle on" : "toggle";
-      saveSetting("beta_channel", S.beta_channel);
-      if (!S.beta_channel) {
-        S.beta_available = false;
-        S.beta_version = "";
-        renderBetaRow();
-      }
-    };
-    betaChannelRow.appendChild(betaChannelToggle);
-    betaChannelField.appendChild(betaChannelRow);
-    fwBody.appendChild(betaChannelField);
-
     var firmwareUrlStatus = el("div", "status");
     function setFirmwareUrlStatus(msg, ok) {
-      firmwareUrlStatus.innerHTML = '<span class="dot ' + (ok ? "green" : "red") + '"></span> ' + msg;
-      clearTimeout(firmwareUrlStatus._t);
-      if (ok) {
-        firmwareUrlStatus._t = setTimeout(function () {
-          firmwareUrlStatus.textContent = "";
-        }, 3000);
-      }
+      setStatus(firmwareUrlStatus, msg, ok ? "green" : "red", ok ? 3000 : null);
     }
 
     function makeFirmwareUrlField(label, key, placeholder) {
       var f = field(label);
       var firmwareUrlInput = input("url", S[key], placeholder, MAX_FIRMWARE_URL_LENGTH);
-      var firmwareUrlError = el("div", "field-error");
+      var firmwareUrlError = makeFieldError();
       firmwareUrlInput.onchange = function () {
         var url = normalizeFirmwareManifestUrl(firmwareUrlInput.value);
         firmwareUrlError.textContent = "";
@@ -2560,20 +2092,24 @@ if (typeof module !== "undefined") {
       return f;
     }
 
+    var advancedBody = el("div", "fw-advanced-body");
     var firmwareUrlsHint = el("div", "field-hint");
-    firmwareUrlsHint.textContent = "Advanced: use a custom manifest to check and install firmware from another location.";
-    fwBody.appendChild(firmwareUrlsHint);
-    fwBody.appendChild(makeFirmwareUrlField(
+    firmwareUrlsHint.textContent = "Use a custom manifest to check and install firmware from another location.";
+    advancedBody.appendChild(firmwareUrlsHint);
+    advancedBody.appendChild(makeFirmwareUrlField(
       "Stable Manifest URL",
       "firmware_manifest_url",
       FIRMWARE_MANIFEST_URLS.stable
     ));
-    fwBody.appendChild(makeFirmwareUrlField(
-      "Beta Manifest URL",
-      "firmware_beta_manifest_url",
-      FIRMWARE_MANIFEST_URLS.beta
-    ));
-    fwBody.appendChild(firmwareUrlStatus);
+    advancedBody.appendChild(firmwareUrlStatus);
+
+    var advancedPanel = document.createElement("details");
+    advancedPanel.className = "inline-expander";
+    var advancedSummary = document.createElement("summary");
+    advancedSummary.textContent = "Advanced";
+    advancedPanel.appendChild(advancedSummary);
+    advancedPanel.appendChild(advancedBody);
+    fwBody.appendChild(advancedPanel);
 
     return makeCollapsibleCard("Firmware", fwBody, true);
   }
@@ -2581,24 +2117,17 @@ if (typeof module !== "undefined") {
   function makeWifiCard() {
     var wifiBody = el("div", "fw-body");
 
-    var currentRow = el("div", "field fw-row");
-    var currentLabel = el("span", "fw-label");
-    currentLabel.innerHTML = '<span style="color:var(--text2)">Current C6 firmware</span> ' +
-      esc(displayVersion(S.c6_current_firmware, "Unknown"));
-    currentRow.appendChild(currentLabel);
-    wifiBody.appendChild(currentRow);
+    wifiBody.appendChild(actionRow(
+      textLabel("Current C6 firmware", displayVersion(S.c6_current_firmware, "Unknown")),
+      document.createElement("span")
+    ));
 
-    var availableRow = el("div", "field fw-row");
-    var availableLabel = el("span", "fw-label");
-    availableLabel.innerHTML = '<span style="color:var(--text2)">Available firmware</span> ' +
-      esc(displayVersion(S.c6_available_firmware, "Unknown"));
+    var availableLabel = textLabel("Available firmware", displayVersion(S.c6_available_firmware, "Unknown"));
     var actionWrap = el("div");
     actionWrap.className = "check-wrap";
-    var checkBtn = el("button", "btn btn-secondary btn-sm");
-    checkBtn.textContent = "Check";
-    checkBtn.onclick = function () {
+    var checkBtn = button("Check", "btn btn-secondary btn-sm", function () {
       checkBtn.disabled = true;
-      checkBtn.textContent = "Checking\u2026";
+      checkBtn.textContent = "Checking...";
       post(endpoints.c6_firmware_check + "/press")
         .catch(function () {
           // Shared request helpers already surface failures in the UI.
@@ -2609,12 +2138,10 @@ if (typeof module !== "undefined") {
             checkBtn.textContent = "Check";
           }, 3000);
         });
-    };
-    var installBtn = el("button", "btn btn-primary btn-sm");
-    installBtn.textContent = "Install";
-    installBtn.onclick = function () {
+    });
+    var installBtn = button("Install", "btn btn-primary btn-sm", function () {
       installBtn.disabled = true;
-      installBtn.textContent = "Installing\u2026";
+      installBtn.textContent = "Installing...";
       post(endpoints.c6_firmware_install + "/press")
         .catch(function () {
           // Shared request helpers already surface failures in the UI.
@@ -2625,37 +2152,53 @@ if (typeof module !== "undefined") {
             installBtn.textContent = "Install";
           }, 3000);
         });
-    };
+    });
     actionWrap.appendChild(checkBtn);
     actionWrap.appendChild(installBtn);
-    availableRow.appendChild(availableLabel);
-    availableRow.appendChild(actionWrap);
-    wifiBody.appendChild(availableRow);
+    wifiBody.appendChild(actionRow(availableLabel, actionWrap));
 
     return makeCollapsibleCard("WiFi", wifiBody, true);
+  }
+
+  function makeDeviceRebootCard() {
+    var rebootBody = el("div", "fw-body");
+    var rebootLabel = textLabel("", "Device Reboot");
+    var rebootBtn = button("Reboot Screen", "btn btn-secondary btn-sm", function () {
+      rebootBtn.disabled = true;
+      rebootBtn.textContent = "Rebooting...";
+      post(endpoints.reboot_screen + "/press")
+        .catch(function () {
+          // Shared request helpers already surface failures in the UI.
+        })
+        .finally(function () {
+          setTimeout(function () {
+            rebootBtn.disabled = false;
+            rebootBtn.textContent = "Reboot Screen";
+          }, 3000);
+        });
+    });
+    rebootBody.appendChild(actionRow(rebootLabel, rebootBtn));
+    return makeCollapsibleCard("Device Reboot", rebootBody, true);
   }
 
   function makeDeveloperCard() {
     if (!developerPanelEnabledByUrl()) return null;
     var devBadge = makeBadge(S.developer_features_enabled);
     var devBody = el("div");
-    var devField = field("");
-    var devRow = el("div", "toggle-row");
-    devRow.innerHTML = "<span>Enable in-development features</span>";
-    var devToggle = el("div", S.developer_features_enabled ? "toggle on" : "toggle");
-    devToggle.onclick = function () {
-      S.developer_features_enabled = !S.developer_features_enabled;
-      devToggle.className = S.developer_features_enabled ? "toggle on" : "toggle";
-      devBadge.className = "on-badge" + (S.developer_features_enabled ? " active" : "");
-      saveSetting("developer_features_enabled", S.developer_features_enabled);
-      if (!S.developer_features_enabled && isPortraitScreenRotation(S.screen_rotation)) {
-        saveSetting("screen_rotation", "0");
+    devBody.appendChild(toggleSettingRow({
+      label: "Enable in-development features",
+      value: S.developer_features_enabled,
+      getValue: function () { return S.developer_features_enabled; },
+      setValue: function (value) { S.developer_features_enabled = value; },
+      badge: devBadge,
+      onChange: function () {
+        saveSetting("developer_features_enabled", S.developer_features_enabled);
+        if (!S.developer_features_enabled && isPortraitScreenRotation(S.screen_rotation)) {
+          saveSetting("screen_rotation", "0");
+        }
+        renderSettings();
       }
-      renderSettings();
-    };
-    devRow.appendChild(devToggle);
-    devField.appendChild(devRow);
-    devBody.appendChild(devField);
+    }).field);
     return makeCollapsibleCard("Developer", devBody, true, devBadge);
   }
 
@@ -2680,6 +2223,7 @@ if (typeof module !== "undefined") {
       makeClockCard: makeClockCard,
       makeFirmwareCard: makeFirmwareCard,
       makeWifiCard: makeWifiCard,
+      makeDeviceRebootCard: makeDeviceRebootCard,
       makeDeveloperCard: makeDeveloperCard,
       makeBackupCard: makeBackupCard
     };
@@ -2724,7 +2268,8 @@ if (typeof module !== "undefined") {
       makeFirmwareCard(),
       makeWifiCard(),
       makeDeveloperCard(),
-      makeBackupCard()
+      makeBackupCard(),
+      makeDeviceRebootCard()
     ];
     appendCards(wrap, settingsCards);
     app.appendChild(wrap);
@@ -2895,6 +2440,284 @@ if (typeof module !== "undefined") {
     var badge = el("span", "on-badge" + (isActive ? " active" : ""));
     badge.textContent = "On";
     return badge;
+  }
+
+  function setBadgeActive(badge, isActive) {
+    if (!badge) return;
+    badge.className = "on-badge" + (isActive ? " active" : "");
+  }
+
+  function setStatus(target, msg, type, clearAfterMs) {
+    if (!target) return;
+    target.innerHTML = "";
+    if (!msg) {
+      target.textContent = "";
+      return;
+    }
+    var dot = el("span", "dot " + (type || "green"));
+    target.appendChild(dot);
+    target.appendChild(document.createTextNode(" " + msg));
+    clearTimeout(target._t);
+    if (clearAfterMs) {
+      target._t = setTimeout(function () {
+        target.textContent = "";
+      }, clearAfterMs);
+    }
+  }
+
+  function button(text, cls, onClick) {
+    var btn = el("button", cls || "btn btn-secondary");
+    btn.type = "button";
+    btn.textContent = text;
+    if (onClick) btn.onclick = onClick;
+    return btn;
+  }
+
+  function actionRow(labelEl, actionEl) {
+    var row = el("div", "field fw-row");
+    row.appendChild(labelEl);
+    row.appendChild(actionEl);
+    return row;
+  }
+
+  function textLabel(prefix, value) {
+    var label = el("span", "fw-label");
+    if (prefix) {
+      var prefixEl = el("span");
+      prefixEl.style.color = "var(--text2)";
+      prefixEl.textContent = prefix;
+      label.appendChild(prefixEl);
+      label.appendChild(document.createTextNode(" " + value));
+    } else {
+      label.textContent = value;
+    }
+    return label;
+  }
+
+  function toggleSettingRow(options) {
+    var opts = options || {};
+    var f = field("");
+    var row = el("div", "toggle-row");
+    var label = el("span");
+    label.textContent = opts.label || "";
+    var getValue = opts.getValue || function () { return !!opts.value; };
+    var setValue = opts.setValue || function (value) { opts.value = value; };
+    var toggle = el("div", opts.value ? "toggle on" : "toggle");
+    if (opts.disabled) {
+      toggle.style.opacity = ".35";
+      toggle.style.cursor = "not-allowed";
+      if (opts.disabledTitle) toggle.title = opts.disabledTitle;
+    }
+    toggle.onclick = function () {
+      if (opts.disabled) return;
+      var next = !getValue();
+      setValue(next);
+      toggle.className = next ? "toggle on" : "toggle";
+      if (opts.details) opts.details.style.display = next ? "" : "none";
+      if (opts.badge) setBadgeActive(opts.badge, opts.badgeActive ? opts.badgeActive() : next);
+      if (opts.onChange) opts.onChange(next);
+    };
+    row.appendChild(label);
+    row.appendChild(toggle);
+    f.appendChild(row);
+    return { field: f, toggle: toggle };
+  }
+
+  function rangeSettingField(labelText, key, options) {
+    var opts = options || {};
+    var f = field(labelText || "");
+    var rw = el("div", "range-wrap");
+    if (opts.leftLabel) {
+      var left = el("span", "range-label");
+      left.textContent = opts.leftLabel;
+      rw.appendChild(left);
+    }
+    var slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = productNumberMin(key, opts.minFallback);
+    slider.max = productNumberMax(key, opts.maxFallback);
+    slider.step = productNumberStep(key, opts.stepFallback);
+    slider.value = S[key];
+    rw.appendChild(slider);
+    if (opts.rightLabel) {
+      var right = el("span", "range-label");
+      right.textContent = opts.rightLabel;
+      rw.appendChild(right);
+    }
+    if (opts.valueSuffix != null) {
+      var value = el("span", "range-val");
+      value.textContent = Math.round(S[key]) + opts.valueSuffix;
+      slider.oninput = function () {
+        value.textContent = slider.value + opts.valueSuffix;
+      };
+      rw.appendChild(value);
+    }
+    slider.onchange = function () {
+      saveSetting(key, slider.value);
+      if (opts.onChange) opts.onChange(slider.value);
+    };
+    f.appendChild(rw);
+    return { field: f, input: slider };
+  }
+
+  function hourSelectSettingField(labelText, key) {
+    var min = productNumberMin(key, 0);
+    var max = productNumberMax(key, 23);
+    var options = [];
+    for (var h = min; h <= max; h++) options.push(h);
+    var f = field(labelText);
+    f.appendChild(
+      selectFromOptions(options, Math.round(S[key]), function (v) {
+        saveSetting(key, parseInt(v));
+      }, formatHour)
+    );
+    return f;
+  }
+
+  function makeFieldError() {
+    return el("div", "field-error");
+  }
+
+  function photoIdListField(options) {
+    var opts = options || {};
+    var f = field(opts.label);
+    var list = el("div", "photo-id-list");
+    var idInputs = [];
+    var labelInputs = [];
+    var error = makeFieldError();
+    var moveUpIcon = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 19V5\"/><path d=\"M5 12l7-7 7 7\"/></svg>";
+    var moveDownIcon = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14\"/><path d=\"M19 12l-7 7-7-7\"/></svg>";
+    var removeIcon = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18\"/><path d=\"M8 6V4h8v2\"/><path d=\"M19 6l-1 14H6L5 6\"/><path d=\"M10 11v5\"/><path d=\"M14 11v5\"/></svg>";
+
+    function notify(changes, delayMs) {
+      if (opts.onChange) opts.onChange(changes, delayMs);
+    }
+
+    function refreshRowButtons() {
+      var rows = Array.prototype.slice.call(list.querySelectorAll(".photo-id-row"));
+      rows.forEach(function (row, index) {
+        var removeBtn = row.querySelector(".photo-id-remove");
+        var moveUpBtn = row.querySelector(".photo-id-move-up");
+        var moveDownBtn = row.querySelector(".photo-id-move-down");
+        if (removeBtn) removeBtn.disabled = idInputs.length <= 1;
+        if (moveUpBtn) moveUpBtn.disabled = index === 0;
+        if (moveDownBtn) moveDownBtn.disabled = index === rows.length - 1;
+      });
+    }
+
+    function movePhotoIdRow(row, direction) {
+      var rows = Array.prototype.slice.call(list.querySelectorAll(".photo-id-row"));
+      var fromIndex = rows.indexOf(row);
+      var toIndex = fromIndex + direction;
+      if (fromIndex < 0 || toIndex < 0 || toIndex >= rows.length) return;
+
+      var movedId = idInputs.splice(fromIndex, 1)[0];
+      var movedLabel = labelInputs.splice(fromIndex, 1)[0];
+      idInputs.splice(toIndex, 0, movedId);
+      labelInputs.splice(toIndex, 0, movedLabel);
+
+      if (direction < 0) {
+        list.insertBefore(row, rows[toIndex]);
+      } else {
+        list.insertBefore(rows[toIndex], row);
+      }
+      refreshRowButtons();
+      notify(opts.reorderChanges, 0);
+    }
+
+    function addRow(value, labelValue) {
+      var row = el("div", "photo-id-row");
+      var fields = el("div", "photo-id-fields");
+      var idInput = input("text", value || "", opts.idPlaceholder, MAX_PHOTO_ID_FIELD_LENGTH);
+      var labelInput = input("text", labelValue || "", opts.labelPlaceholder, MAX_PHOTO_ID_FIELD_LENGTH);
+      var actions = el("div", "photo-id-row-actions");
+      var moveUpTitle = opts.moveUpTitle || "Move up";
+      var moveDownTitle = opts.moveDownTitle || "Move down";
+      var moveUpBtn = el("button", "btn btn-secondary btn-icon photo-id-move-up");
+      moveUpBtn.type = "button";
+      moveUpBtn.innerHTML = moveUpIcon;
+      moveUpBtn.title = moveUpTitle;
+      moveUpBtn.setAttribute("aria-label", moveUpTitle);
+      moveUpBtn.onclick = function () {
+        movePhotoIdRow(row, -1);
+      };
+      var moveDownBtn = el("button", "btn btn-secondary btn-icon photo-id-move-down");
+      moveDownBtn.type = "button";
+      moveDownBtn.innerHTML = moveDownIcon;
+      moveDownBtn.title = moveDownTitle;
+      moveDownBtn.setAttribute("aria-label", moveDownTitle);
+      moveDownBtn.onclick = function () {
+        movePhotoIdRow(row, 1);
+      };
+      var removeBtn = el("button", "btn btn-secondary btn-icon");
+      removeBtn.classList.add("photo-id-remove");
+      removeBtn.type = "button";
+      removeBtn.innerHTML = removeIcon;
+      removeBtn.title = opts.removeTitle;
+      removeBtn.setAttribute("aria-label", opts.removeTitle);
+      removeBtn.onclick = function () {
+        if (idInputs.length <= 1) {
+          idInput.value = "";
+          labelInput.value = "";
+          notify(opts.clearChanges, 0);
+          return;
+        }
+        var removeIndex = idInputs.indexOf(idInput);
+        idInputs.splice(removeIndex, 1);
+        labelInputs.splice(removeIndex, 1);
+        row.parentNode.removeChild(row);
+        refreshRowButtons();
+        notify(opts.clearChanges, 0);
+      };
+      idInput.oninput = function () {
+        notify(opts.idChanges);
+      };
+      labelInput.oninput = function () {
+        notify(opts.labelChanges);
+      };
+      fields.appendChild(idInput);
+      fields.appendChild(labelInput);
+      row.appendChild(fields);
+      actions.appendChild(moveUpBtn);
+      actions.appendChild(moveDownBtn);
+      actions.appendChild(removeBtn);
+      row.appendChild(actions);
+      list.appendChild(row);
+      idInputs.push(idInput);
+      labelInputs.push(labelInput);
+      refreshRowButtons();
+    }
+
+    var ids = splitPhotoIdList(S[opts.idKey]);
+    var labels = parsePhotoLabelList(S[opts.labelKey]);
+    for (var i = 0; i < Math.max(ids.length, labels.length, 1); i++) {
+      addRow(ids[i] || "", labels[i] || "");
+    }
+
+    var addRowWrap = el("div", "photo-id-actions");
+    var addBtn = button(opts.addText, "btn btn-secondary", function () {
+      addRow("", "");
+      idInputs[idInputs.length - 1].focus();
+    });
+    addBtn.title = opts.addText;
+    addBtn.setAttribute("aria-label", opts.addText);
+    addRowWrap.appendChild(addBtn);
+    f.appendChild(list);
+    f.appendChild(addRowWrap);
+    f.appendChild(error);
+
+    return {
+      field: f,
+      error: error,
+      getIdsValue: function () {
+        return idInputs.map(function (inputEl) {
+          return inputEl.value.trim();
+        }).filter(Boolean).join(",");
+      },
+      getLabelsValue: function () {
+        return buildPhotoLabelList(idInputs, labelInputs);
+      }
+    };
   }
 
   function makeCollapsibleCard(title, bodyElement, defaultCollapsed, badgeEl) {
@@ -3187,14 +3010,6 @@ if (typeof module !== "undefined") {
           return skipBackupImportField("Stable firmware URL was invalid - not imported");
         } else {
           trackBackupImportSave(saveSetting("firmware_manifest_url", importManifestUrl));
-        }
-        return true;
-      case "firmware_updates.beta_manifest_url":
-        var importBetaManifestUrl = normalizeFirmwareManifestUrl(value);
-        if (importBetaManifestUrl && !isValidHttpUrl(importBetaManifestUrl)) {
-          return skipBackupImportField("Beta firmware URL was invalid - not imported");
-        } else {
-          trackBackupImportSave(saveSetting("firmware_beta_manifest_url", importBetaManifestUrl));
         }
         return true;
       case "clock.timezone":
