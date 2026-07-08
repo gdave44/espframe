@@ -49,6 +49,7 @@ Currently documented hardware:
 | Item | Link |
 |------|------|
 | 10" Guition ESP32-P4 panel (`JC8012P4A1`) | [AliExpress](https://s.click.aliexpress.com/e/_c4LLo3rH) |
+| 10" Guition ESP32-P4 panel (`JC8012P4A1` JD9365 new-panel batch) | [AliExpress](https://s.click.aliexpress.com/e/_c4LLo3rH) |
 | 10" printable stand | [MakerWorld](https://makerworld.com/en/models/2490049-guition-p4-10inch-screen-stand#profileId-2736046) |
 
 ## Getting Started
@@ -87,6 +88,7 @@ npm run docs:dev
 
 # Compile firmware locally
 docker run --rm -v "${PWD}:/config" ghcr.io/esphome/esphome:2026.6.4 compile /config/builds/guition-esp32-p4-jc8012p4a1.factory.yaml
+docker run --rm -v "${PWD}:/config" ghcr.io/esphome/esphome:2026.6.4 compile /config/builds/guition-esp32-p4-jc8012p4a1-jd9365.factory.yaml
 ```
 
 ### In-Development Firmware Features

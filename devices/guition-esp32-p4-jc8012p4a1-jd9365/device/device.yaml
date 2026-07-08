@@ -1,8 +1,8 @@
 # =============================================================================
-# HARDWARE CONFIGURATION - Guition ESP32-P4-JC8012P4A1
+# HARDWARE CONFIGURATION - Guition ESP32-P4-JC8012P4A1 JD9365
 # =============================================================================
 # Base device config: ESP32-P4 host, ESP32-C6 coprocessor (WiFi/BT over SDIO),
-# PSRAM, display (MIPI DSI JC8012P4A1), touch (GSL3680), backlight, I2C. Also
+# PSRAM, display (MIPI DSI JD9365), touch (GSL3680), backlight, I2C. Also
 # API, logger, web server, OTA, and espframe external components. Display is
 # 800×1280 logical (rotation 90).
 # =============================================================================
@@ -133,9 +133,16 @@ ota:
             global_preferences->sync();
 
 # -----------------------------------------------------------------------------
-# External components (espframe: gsl3680, remote_image, espframe)
+# External components (espframe: mipi_dsi, gsl3680, remote_image, espframe)
 # -----------------------------------------------------------------------------
 external_components:
+  - source:
+      type: git
+      url: ${espframe_component_url}
+      ref: ${espframe_component_ref}
+      path: components
+    components: [mipi_dsi]
+    refresh: 0s
   - source:
       type: git
       url: ${espframe_component_url}
@@ -171,25 +178,25 @@ i2c:
     scl_pullup_enabled: false
 
 # -----------------------------------------------------------------------------
-# MIPI DSI display (JC8012P4A1, 800×1280, rotation 90)
+# MIPI DSI display (JD9365 new-panel batch, 800x1280, rotation 90)
 # -----------------------------------------------------------------------------
 display:
   - platform: mipi_dsi
-    model: JC8012P4A1
+    model: JD9365
     id: tft_display
     reset_pin: GPIO27
     auto_clear_enabled: false
     update_interval: never
     color_order: RGB
-    # Original JC8012P4A1 panel timing for the first 10-inch screen batch.
-    pclk_frequency: 60MHz
-    lane_bit_rate: 1500Mbps
+    # Match Guition's V4.3 new-panel JD9365 BSP path.
+    pclk_frequency: 70MHz
+    lane_bit_rate: 840Mbps
     hsync_pulse_width: 20
     hsync_back_porch: 20
     hsync_front_porch: 40
     vsync_pulse_width: 4
-    vsync_back_porch: 8
-    vsync_front_porch: 20
+    vsync_back_porch: 10
+    vsync_front_porch: 30
     dimensions:
       width: 800
       height: 1280

@@ -28,6 +28,17 @@ packages:
     refresh: 1s
 ```
 
+For the JD9365 new-panel batch, use the matching package file:
+
+```yaml
+packages:
+  espframe:
+    url: https://github.com/jtenniswood/espframe
+    files: [devices/guition-esp32-p4-jc8012p4a1-jd9365/packages.yaml]
+    ref: main
+    refresh: 1s
+```
+
 Add `secrets.yaml` with `wifi_ssid` and `wifi_password`, then:
 
 ```bash

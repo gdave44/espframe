@@ -1,0 +1,18 @@
+# =============================================================================
+# DEV CONFIG - Local development entry point (Guition ESP32-P4 JC8012P4A1 JD9365)
+# =============================================================================
+# Flash with: esphome run dev.yaml
+# =============================================================================
+
+substitutions:
+  name: "immich-10-jd9365-dev"
+  friendly_name: "Immich Frame 10inch JD9365 Dev"
+  espframe_component_url: "../.."
+  espframe_component_ref: "HEAD"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+packages:
+  espframe: !include packages.yaml
