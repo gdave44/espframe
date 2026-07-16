@@ -15,6 +15,12 @@ esphome:
 packages:
   espframe: !include ../devices/guition-esp32-p4-jc8012p4a1/packages.yaml
 
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components: [gsl3680, remote_image, espframe]
+
 wifi:
   ap:
 
