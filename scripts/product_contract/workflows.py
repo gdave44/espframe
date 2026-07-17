@@ -1768,8 +1768,7 @@ def check_device_workflow_contract(product: dict, errors: list[str]) -> None:
         )
     if release_esphome_cache_dir:
         build_dir_fragment = (
-            'BUILD_DIR="${RELEASE_ESPHOME_CACHE_DIR}/build/${{ matrix.build_name }}/.pioenvs/'
-            '${{ matrix.build_name }}"'
+            'BUILD_DIR="${RELEASE_ESPHOME_CACHE_DIR}/build/${{ matrix.build_name }}/build"'
         )
         for target, step_names in (
             ("compile.compile", ("Compile test firmware artifacts",)),
