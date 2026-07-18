@@ -33,7 +33,7 @@ text_sensor:
       if (upd->state == esphome::update::UpdateState::UPDATE_STATE_NO_UPDATE)
         return std::string("Up-to-date");
       return std::string("Unknown");
-    update_interval: 60s
+    update_interval: 24h
 
   - platform: template
     name: "ESP32-C6: Current Firmware"
@@ -48,7 +48,7 @@ text_sensor:
       auto &cur = upd->update_info.current_version;
       if (cur.empty()) return std::string("Unknown");
       return cur;
-    update_interval: 60s
+    update_interval: 24h
 
   - platform: template
     name: "ESP32-C6: Available Firmware"
@@ -63,7 +63,7 @@ text_sensor:
       auto &lat = upd->update_info.latest_version;
       if (lat.empty()) return std::string("Unknown");
       return lat;
-    update_interval: 60s
+    update_interval: 24h
 
 button:
   - platform: template

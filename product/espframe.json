@@ -399,7 +399,7 @@
     "photo_source_memories_window": "two days before and two days after today's date",
     "photo_source_memories_fallback": "falls back to random if none",
     "photo_source_album_person_sampling": "sampled through paged Immich search",
-    "slideshow_check_interval": "2s",
+    "slideshow_check_interval": "5s",
     "slideshow_interval_default_seconds": 15,
     "slideshow_interval_range_seconds": [
       10,

@@ -8,7 +8,7 @@
 
 substitutions:
   immich_slide_interval: "15 seconds"
-  slideshow_check_interval: "2s"
+  slideshow_check_interval: "5s"
 
 # =============================================================================
 # LVGL UI

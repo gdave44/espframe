@@ -325,6 +325,9 @@ script:
               - lambda: |-
                   id(immich_request_state).register_request_error();
                   ESP_LOGW("immich", "Statistics count request error for slot %d (attempt %d)", id(espframe_core).slideshow().state().target_slot, id(immich_request_state).api_retries);
+                  if (id(immich_request_state).api_retries == 1) {
+                    log_immich_connect_failure_diagnostics(id(immich_url).state);
+                  }
                   clear_slot_fetch_in_flight(id(espframe_core).slideshow().state().target_slot, id(espframe_core).slideshow().state().slot_flags);
                   id(espframe_core).slideshow().state().diagnostic_reason = "statistics count request error";
                   id(log_immich_diag).execute();
@@ -427,6 +430,9 @@ script:
               - lambda: |-
                   id(immich_request_state).register_request_error();
                   ESP_LOGW("immich", "Metadata page request error for slot %d (attempt %d)", id(espframe_core).slideshow().state().target_slot, id(immich_request_state).api_retries);
+                  if (id(immich_request_state).api_retries == 1) {
+                    log_immich_connect_failure_diagnostics(id(immich_url).state);
+                  }
                   clear_slot_fetch_in_flight(id(espframe_core).slideshow().state().target_slot, id(espframe_core).slideshow().state().slot_flags);
                   id(espframe_core).slideshow().state().diagnostic_reason = "metadata page request error";
                   id(log_immich_diag).execute();
@@ -621,6 +627,9 @@ script:
               - lambda: |-
                   id(immich_request_state).register_request_error();
                   ESP_LOGW("immich", "API request error for slot %d (attempt %d)", id(espframe_core).slideshow().state().target_slot, id(immich_request_state).api_retries);
+                  if (id(immich_request_state).api_retries == 1) {
+                    log_immich_connect_failure_diagnostics(id(immich_url).state);
+                  }
                   clear_slot_fetch_in_flight(id(espframe_core).slideshow().state().target_slot, id(espframe_core).slideshow().state().slot_flags);
                   id(espframe_core).slideshow().state().diagnostic_reason = "api request error";
                   id(log_immich_diag).execute();

@@ -11,6 +11,8 @@
 #include <type_traits>
 #include "esp_heap_caps.h"
 #include "esphome/core/hal.h"
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #ifdef USE_LVGL
 #include "esphome/components/image/image.h"
@@ -212,6 +214,43 @@ inline void log_immich_pipeline_diag(const char *reason, uint32_t now_ms, uint32
            portrait.right_ready, portrait.companion_found, portrait.is_pair,
            portrait_preload_slot, portrait_preload_left_ready, portrait_preload_right_ready,
            companion_target_slot, api_retries, download_retries, (unsigned) cooldown_left);
+}
+
+// Runs a DNS lookup for the configured Immich host and logs a hint pointing at
+// firewall/routing as the likely cause. Called once per fetch-retry cycle (not
+// on every retry attempt) since a lookup this expensive doesn't need repeating
+// every few seconds while backing off.
+inline void log_immich_connect_failure_diagnostics(const std::string &base_url) {
+  std::string host = base_url;
+  size_t scheme_pos = host.find("://");
+  if (scheme_pos != std::string::npos) host = host.substr(scheme_pos + 3);
+  host = extract_url_host(host);
+  if (host.empty()) {
+    ESP_LOGW("immich", "Could not connect to Immich: no server address is configured yet");
+    return;
+  }
+
+  std::string lookup_host = host;
+  if (lookup_host.size() >= 2 && lookup_host.front() == '[' && lookup_host.back() == ']') {
+    lookup_host = lookup_host.substr(1, lookup_host.size() - 2);
+  }
+
+  struct hostent *he = gethostbyname(lookup_host.c_str());
+  if (he == nullptr || he->h_addr_list == nullptr || he->h_addr_list[0] == nullptr) {
+    ESP_LOGW("immich",
+             "Could not connect to Immich host '%s': DNS lookup failed (no address record, or the DNS server "
+             "is unreachable). Check the hostname/IP in Settings and this device's network/DNS configuration.",
+             host.c_str());
+    return;
+  }
+
+  char ip_str[46] = {0};
+  inet_ntop(he->h_addrtype, he->h_addr_list[0], ip_str, sizeof(ip_str));
+  ESP_LOGW("immich",
+           "Could not connect to Immich host '%s' (resolves to %s). DNS is working, so this looks like a "
+           "network or firewall problem — check that this device can reach %s on the Immich port, and check "
+           "for a firewall rule pointing at a stale IP.",
+           host.c_str(), ip_str, ip_str);
 }
 
 inline std::string decode_url_commas(const std::string &input) {
