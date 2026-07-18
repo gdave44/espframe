@@ -1,5 +1,7 @@
 # Espframe for Immich
 
+> **This is a personal fork.** Espframe was created by [James Tenniswood](https://github.com/jtenniswood) — all credit for the original design and firmware goes to the upstream project at [jtenniswood/espframe](https://github.com/jtenniswood/espframe). This fork tracks upstream and adds a small set of local changes: ESPHome 2026.7.0 compatibility, quieter firmware-update-check logging, connection-failure diagnostics (DNS lookup + firewall hint), and a relaxed slideshow load-check interval. The web installer and docs links below point at the upstream project's build; to install this fork's firmware, compile it locally instead (see [Development](#development)).
+
 Turn a supported Guition ESP32-P4 touchscreen into a private digital photo frame for your [Immich](https://immich.app/) photo library.
 
 Espframe is for people who want their photos out in the room, not hidden on a phone, and do not want to run another server, cloud account, or subscription just to make that happen. Flash the frame from a browser, connect it to WiFi, point it at Immich, and it starts showing your photos.
